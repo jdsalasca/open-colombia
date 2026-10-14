@@ -3,7 +3,10 @@ import { Link, useParams } from 'react-router-dom'
 import { getSeries } from '../api'
 import { RangeSelector, defaultRange, rangesFor } from '../components/RangeSelector'
 import { RatesPanel } from '../components/RatesPanel'
+import { ols } from '../format'
 import { LineChart } from '../paper/LineChart'
+import { YoYBars } from '../paper/YoYBars'
+import { Breakdowns } from './Breakdowns'
 import { PaperCard } from '../paper/PaperCard'
 import { PaperSheet } from '../paper/PaperSheet'
 import type { IndicatorsResponse, Insight, Series, SeriesResponse } from '../types'
@@ -37,7 +40,10 @@ function SeriesBlock({ series }: { series: Series }) {
         <p className="card-empty">No pudimos cargar este rango. Prueba otro.</p>
       ) : (
         <>
-          <LineChart points={points} unit={series.unit} />
+          <LineChart points={points} unit={series.unit} trend={ols(points)} />
+          {series.periodicity === 'anual' && (
+            <YoYBars points={points} higherIsBetter={res?.higherIsBetter ?? null} />
+          )}
           <RatesPanel rates={res?.rates ?? null} unit={series.unit} periodicity={series.periodicity} />
         </>
       )}
@@ -72,6 +78,7 @@ export function ThemePage({ data, insights }: { data: IndicatorsResponse; insigh
         .map((s) => (
           <SeriesBlock key={s.id} series={s} />
         ))}
+      {theme.id === 'seguridad' && <Breakdowns />}
       {mine.length > 0 && (
         <>
           <h3>Qué dicen los datos</h3>

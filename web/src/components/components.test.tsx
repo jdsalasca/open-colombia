@@ -80,7 +80,7 @@ const data: IndicatorsResponse = { themes: [{ id: 'economia', name: 'Economía',
 describe('ThemePage ranges', () => {
   it('re-queries the series with the chosen range', async () => {
     const respond = (range: string): SeriesResponse => ({
-      series: monthly, range, availableRanges: ['3m', '6m', '1a', '2a', 'todo'],
+      series: monthly, range, availableRanges: ['3m', '6m', '1a', '2a', 'todo'], higherIsBetter: null,
       rates: { n: 6, from: '2026-03-01', to: '2026-08-01', change: 50, changePct: 1.6, annualizedPct: null,
         mean: 3100, min: { date: '2026-03-01', value: 3050 }, max: { date: '2026-08-01', value: 3200 }, stdDev: 40 },
     })
@@ -103,7 +103,7 @@ describe('ThemePage ranges', () => {
     const annual = { ...monthly, id: 'desempleo', periodicity: 'anual',
       points: Array.from({ length: 12 }, (_, i) => ({ date: `${2010 + i}-01-01`, value: 10 - i * 0.2 })) }
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response(JSON.stringify({
-      series: annual, range: 'todo', availableRanges: ['5a', '10a', 'todo'], rates: null }), { status: 200 })))
+      series: annual, range: 'todo', availableRanges: ['5a', '10a', 'todo'], rates: null, higherIsBetter: false }), { status: 200 })))
     render(
       <MemoryRouter initialEntries={['/tema/economia']}>
         <Routes>
