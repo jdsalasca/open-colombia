@@ -67,7 +67,7 @@ generado a partir de los resultados de `analytics` con plantillas redactadas a m
 referencias citadas (literatura económica estándar: Okun, Phillips, crecimiento
 inclusivo). El texto indica los supuestos y el nivel de confianza (n, R²).
 
-## 5. Despliegue (servidor `atopnuc@192.168.1.100`)
+## 5. Despliegue (servidor el servidor)
 Siguiendo `server/servidor-hotel-os.md`:
 1. `~/sitios/open-colombia`, clon del repo público; `compose.tunnel.yaml` publica
    `5174→3000` con volumen para la caché.

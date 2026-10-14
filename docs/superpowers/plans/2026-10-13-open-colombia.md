@@ -20,7 +20,7 @@
 - Sin secretos en el repo; ninguna fuente exige llave en v1.
 - Propuestas = análisis ilustrativo con supuestos, n y R² explícitos, no política oficial.
 - Paper craft con gráficas propias en SVG (sin librería de charts); accesible AA, teclado, `prefers-reduced-motion`, responsive.
-- Despliegue: `~/sitios/open-colombia` en `atopnuc@192.168.1.100`, puerto `5174`→8080, regla de ingress antes del catch-all 404, respaldo previo de `~/.cloudflared/config.yml`; `hotel.eridu.top` y `bogota-mitos.eridu.top` deben seguir respondiendo.
+- Despliegue: `~/sitios/open-colombia` en el servidor, puerto `5174`→8080, regla de ingress antes del catch-all 404, respaldo previo de `~/.cloudflared/config.yml`; `hotel.eridu.top` y `bogota-mitos.eridu.top` deben seguir respondiendo.
 
 ## Review Focus
 
@@ -208,8 +208,8 @@ Dockerfile, compose.tunnel.yaml, .gitignore, README.md, docs/sources.md
 
 ### Task 13: Despliegue en el servidor
 
-- [ ] **Step 1:** `ssh atopnuc@192.168.1.100`; `cp ~/.cloudflared/config.yml ~/.cloudflared/config.yml.bak-$(date +%F)`. Anotar el estado actual: `curl -s -o /dev/null -w "%{http_code}"` de `hotel.eridu.top` y `bogota-mitos.eridu.top`.
+- [ ] **Step 1:** `ssh <usuario>@<servidor>`; `cp ~/.cloudflared/config.yml ~/.cloudflared/config.yml.bak-$(date +%F)`. Anotar el estado actual: `curl -s -o /dev/null -w "%{http_code}"` de `hotel.eridu.top` y `bogota-mitos.eridu.top`.
 - [ ] **Step 2:** `git clone https://github.com/jdsalasca/open-colombia ~/sitios/open-colombia`; `sudo docker compose -f compose.tunnel.yaml up -d --build`; `curl localhost:5174/api/health` → 200 en el servidor.
-- [ ] **Step 3:** Añadir en `config.yml` antes del `http_status:404` el ingress `hostname: open-colombia.eridu.top` → `service: http://localhost:5174`; `cloudflared tunnel ingress validate`; `sudo systemctl restart cloudflared`; `cloudflared tunnel route dns 04706903-924c-4364-b06e-aec258973960 open-colombia.eridu.top` (si falla por permisos, indicar al usuario crear el CNAME en el panel).
+- [ ] **Step 3:** Añadir en `config.yml` antes del `http_status:404` el ingress `hostname: open-colombia.eridu.top` → `service: http://localhost:5174`; `cloudflared tunnel ingress validate`; `sudo systemctl restart cloudflared`; `cloudflared tunnel route dns <tunnel-id> open-colombia.eridu.top` (si falla por permisos, indicar al usuario crear el CNAME en el panel).
 - [ ] **Step 4: Verificación:** `https://open-colombia.eridu.top/api/health` → 200; el bundle `assets/index-*.js` servido coincide con `web/dist`; `hotel.eridu.top` y `bogota-mitos.eridu.top` devuelven los mismos códigos que en el Step 1. Si alguno cambió, restaurar `config.yml.bak-*` y reiniciar cloudflared.
 - [ ] **Step 5:** Pulsar Actualizar en la URL pública y confirmar datos reales; reportar al usuario la URL y el repo.
