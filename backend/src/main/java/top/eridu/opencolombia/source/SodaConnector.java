@@ -3,6 +3,7 @@ package top.eridu.opencolombia.source;
 import java.net.URI;
 import java.time.Clock;
 import java.time.LocalDate;
+import java.time.YearMonth;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -39,7 +40,9 @@ public class SodaConnector implements SourceConnector {
     @Override
     public Series fetch(IndicatorSpec spec) throws SourceException {
         UriComponentsBuilder ub = UriComponentsBuilder.fromUriString(BASE.formatted(spec.ref()));
-        for (Map.Entry<String, String> e : spec.params().entrySet()) ub.queryParam(e.getKey(), e.getValue());
+        for (Map.Entry<String, String> e : spec.params().entrySet()) {
+            if (e.getKey().startsWith("$")) ub.queryParam(e.getKey(), e.getValue()); // el resto son banderas internas
+        }
         URI uri = ub.build().encode().toUri();
         String body;
         try {
@@ -64,6 +67,10 @@ public class SodaConnector implements SourceConnector {
             Double v = Values.number(row.get(spec.valueField()));
             LocalDate d = Values.isoDate(row.get(spec.dateField()));
             if (v != null && d != null) out.add(new Point(d, v));
+        }
+        if ("true".equals(spec.params().get("dropCurrentPeriod"))) {
+            YearMonth now = YearMonth.now(clock);
+            out.removeIf(p -> YearMonth.from(p.date()).equals(now)); // mes en curso: siempre parcial
         }
         out.sort(Comparator.comparing(Point::date));
         return out;

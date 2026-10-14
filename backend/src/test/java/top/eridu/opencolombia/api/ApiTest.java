@@ -39,7 +39,9 @@ class ApiTest {
     void indicatorsWithEmptyStoreIs200WithThemesAndNoSeries() throws Exception {
         mvc.perform(get("/api/indicators")).andExpect(status().isOk())
                 .andExpect(jsonPath("$.themes.length()").value(6))
-                .andExpect(jsonPath("$.themes[0].series.length()").value(0));
+                .andExpect(jsonPath("$.themes[0].series.length()").value(3))
+                .andExpect(jsonPath("$.themes[0].series[0].points.length()").value(0))
+                .andExpect(jsonPath("$.themes[0].series[0].source").isNotEmpty());
     }
 
     @Test

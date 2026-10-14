@@ -12,7 +12,7 @@ export interface Series {
   sourceUrl: string
   periodicity: string
   points: Point[]
-  fetchedAt: string
+  fetchedAt: string | null
 }
 
 export interface ThemeView {

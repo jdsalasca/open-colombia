@@ -63,6 +63,20 @@ class InsightServiceTest {
     }
 
     @Test
+    void weakFitIsNotGivenMediaConfidence() {
+        var store = new SeriesStore(dir);
+        List<Point> pts = new ArrayList<>();
+        for (int i = 0; i < 20; i++) pts.add(new Point(LocalDate.of(2005 + i, 1, 1), i % 2 == 0 ? 10 : 12));
+        store.put(series("desempleo", 1, 0, 0).withPoints(pts));
+        Insight i = new InsightService(store).insights().stream()
+                .filter(x -> x.themeId().equals("empleo")).filter(x -> x.finding().contains("Tendencia"))
+                .findFirst().orElseThrow();
+        assertThat(i.confidence().r2()).isLessThan(0.3);
+        assertThat(i.confidence().level()).isEqualTo("baja");
+        assertThat(i.proposal()).containsIgnoringCase("evidencia débil");
+    }
+
+    @Test
     void tooFewPointsIsMarkedInsufficient() {
         var store = new SeriesStore(dir);
         store.put(series("empleo-vulnerable", 3, 40, -0.5));

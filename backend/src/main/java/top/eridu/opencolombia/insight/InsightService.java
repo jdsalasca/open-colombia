@@ -53,11 +53,24 @@ public class InsightService {
         return out;
     }
 
+    /** El nivel exige tamaño de muestra Y ajuste: con R² bajo nunca pasa de «baja». */
     private static String level(int n, Double r2) {
         if (n < Stats.MIN_N) return "insuficiente";
-        if (n >= 15 && r2 != null && r2 >= 0.6) return "alta";
+        if (r2 == null || r2.isNaN() || r2 < 0.3) return "baja";
+        if (n >= 15 && r2 >= 0.6) return "alta";
         if (n >= 8) return "media";
         return "baja";
+    }
+
+    private static final String WEAK =
+            "Evidencia débil con los datos actuales; tómese como idea a explorar, no como conclusión. ";
+
+    private static String proposalFor(String lvl, String template) {
+        return switch (lvl) {
+            case "insuficiente" -> NO_EVIDENCE;
+            case "baja" -> WEAK + template;
+            default -> template;
+        };
     }
 
     private static String f(double v) {
@@ -86,8 +99,7 @@ public class InsightService {
                 fc.map(x -> " Con esa tendencia lineal, la proyección a un año es %s (intervalo 95%%: %s a %s)."
                         .formatted(f(x.value()), f(x.low()), f(x.high()))).orElse(""));
         String lvl = level(r.n(), r.r2());
-        String proposal = lvl.equals("insuficiente") ? NO_EVIDENCE : d.proposal();
-        return new Insight(d.theme(), d.title(), finding, d.literature(), proposal,
+        return new Insight(d.theme(), d.title(), finding, d.literature(), proposalFor(lvl, d.proposal()),
                 new Confidence(r.n(), r.r2(), lvl));
     }
 
@@ -116,6 +128,6 @@ public class InsightService {
             lvl = "baja";
         }
         return new Insight(d.theme(), d.title(), finding, d.literature(),
-                lvl.equals("insuficiente") ? NO_EVIDENCE : d.proposal(), new Confidence(r.n(), r.r2(), lvl));
+                proposalFor(lvl, d.proposal()), new Confidence(r.n(), r.r2(), lvl));
     }
 }

@@ -70,4 +70,18 @@ class SodaConnectorTest {
         server.expect(requestTo(startsWith(BASE))).andRespond(withSuccess("[]", MediaType.APPLICATION_JSON));
         assertThat(connector.fetch(spec).points()).isEmpty();
     }
+
+    @Test
+    void dropsCurrentPartialMonthWhenFlagged() throws Exception {
+        Map<String, String> p = new LinkedHashMap<>();
+        p.put("$select", "date_trunc_ym(fecha_hecho) as mes, sum(cantidad) as v");
+        p.put("dropCurrentPeriod", "true");
+        var flagged = new IndicatorSpec("hom", Theme.SEGURIDAD, "Homicidios", "casos/mes", "mensual",
+                IndicatorSpec.Kind.SODA, "m8fd-ahd9", p, "v", "mes");
+        server.expect(requestTo(startsWith("https://www.datos.gov.co/resource/m8fd-ahd9.json")))
+                .andRespond(withSuccess("[{\"mes\":\"2026-09-01T00:00:00.000\",\"v\":\"1100\"},"
+                        + "{\"mes\":\"2026-10-01T00:00:00.000\",\"v\":\"300\"}]", MediaType.APPLICATION_JSON));
+        assertThat(connector.fetch(flagged).points()).extracting(Point::date)
+                .containsExactly(LocalDate.of(2026, 9, 1)); // reloj fijo: 2026-10-13
+    }
 }
