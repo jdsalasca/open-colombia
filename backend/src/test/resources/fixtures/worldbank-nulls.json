@@ -1,0 +1,6 @@
+[{"page":1,"pages":1,"per_page":5,"total":5},[
+{"indicator":{"id":"X","value":"Test indicator"},"country":{"id":"CO","value":"Colombia"},"date":"2024","value":null},
+{"indicator":{"id":"X","value":"Test indicator"},"country":{"id":"CO","value":"Colombia"},"date":"2023","value":7.5},
+{"indicator":{"id":"X","value":"Test indicator"},"country":{"id":"CO","value":"Colombia"},"date":"2022","value":""},
+{"indicator":{"id":"X","value":"Test indicator"},"country":{"id":"CO","value":"Colombia"},"date":"2021","value":"."},
+{"indicator":{"id":"X","value":"Test indicator"},"country":{"id":"CO","value":"Colombia"},"date":"2020","value":6.1}]]
