@@ -1,0 +1,18 @@
+package top.eridu.opencolombia.model;
+
+import java.time.Instant;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Optional;
+
+public record Series(String id, String theme, String name, String unit, String source,
+                     String sourceUrl, String periodicity, List<Point> points, Instant fetchedAt) {
+
+    public Optional<Point> latest() {
+        return points.stream().max(Comparator.comparing(Point::date));
+    }
+
+    public Series withPoints(List<Point> newPoints) {
+        return new Series(id, theme, name, unit, source, sourceUrl, periodicity, newPoints, fetchedAt);
+    }
+}
