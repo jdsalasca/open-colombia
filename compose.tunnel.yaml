@@ -1,0 +1,12 @@
+# Producción detrás del túnel de cloudflared: open-colombia.eridu.top -> http://localhost:5174
+services:
+  web:
+    build: .
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:5174:8080"
+    volumes:
+      - opencolombia-data:/data
+
+volumes:
+  opencolombia-data:
