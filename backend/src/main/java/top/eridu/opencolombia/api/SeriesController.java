@@ -18,7 +18,8 @@ import top.eridu.opencolombia.source.IndicatorSpec;
 /** Una serie vista por ventana de tiempo, con sus tasas. Opera sobre datos ya guardados. */
 @RestController
 public class SeriesController {
-    public record SeriesResponse(Series series, String range, List<String> availableRanges, RatesResult rates) {}
+    public record SeriesResponse(Series series, String range, List<String> availableRanges, RatesResult rates,
+                                 Boolean higherIsBetter) {}
 
     private final SeriesStore store;
     private final List<IndicatorSpec> specs;
@@ -45,6 +46,6 @@ public class SeriesController {
         Series full = store.get(id).orElseGet(() -> spec.get().placeholder());
         Series windowed = range.get().apply(full);
         return ResponseEntity.ok(new SeriesResponse(windowed, range.get().code(), codes,
-                Rates.compute(windowed).orElse(null)));
+                Rates.compute(windowed).orElse(null), spec.get().higherIsBetter()));
     }
 }

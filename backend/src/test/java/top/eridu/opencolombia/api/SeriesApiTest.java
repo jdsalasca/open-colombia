@@ -61,6 +61,7 @@ class SeriesApiTest {
     void defaultRangeIsTodo() throws Exception {
         mvc.perform(get("/api/series/desempleo")).andExpect(status().isOk())
                 .andExpect(jsonPath("$.range").value("todo"))
+                .andExpect(jsonPath("$.higherIsBetter").value(false))
                 .andExpect(jsonPath("$.series.points.length()").value(20));
     }
 
@@ -71,6 +72,14 @@ class SeriesApiTest {
         mvc.perform(get("/api/series/desempleo?range=3m")).andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.availableRanges", hasItem("5a")));
         mvc.perform(get("/api/series/trm?range=xx")).andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void spaRoutesForwardToIndex() throws Exception {
+        mvc.perform(get("/metodologia")).andExpect(status().isOk())
+                .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.forwardedUrl("/index.html"));
+        mvc.perform(get("/metodologia/trm")).andExpect(status().isOk())
+                .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.forwardedUrl("/index.html"));
     }
 
     @Test

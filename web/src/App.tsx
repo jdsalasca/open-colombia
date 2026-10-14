@@ -4,6 +4,8 @@ import { getIndicators, getInsights } from './api'
 import { RefreshButton } from './components/RefreshButton'
 import { PaperSheet } from './paper/PaperSheet'
 import { Home } from './pages/Home'
+import { Methodology } from './pages/Methodology'
+import { MethodologyIndex } from './pages/MethodologyIndex'
 import { Proposals } from './pages/Proposals'
 import { ThemePage } from './pages/ThemePage'
 import type { IndicatorsResponse, Insight } from './types'
@@ -50,6 +52,7 @@ export default function App() {
                 <li key={t.id}><NavLink to={`/tema/${t.id}`}>{t.name}</NavLink></li>
               ))}
               <li><NavLink to="/propuestas">Qué hacer</NavLink></li>
+              <li><NavLink to="/metodologia">Metodología</NavLink></li>
             </ul>
           </nav>
         </header>
@@ -64,6 +67,8 @@ export default function App() {
               <Route path="/" element={<Home data={data} />} />
               <Route path="/tema/:id" element={<ThemePage data={data} insights={insights} />} />
               <Route path="/propuestas" element={<Proposals insights={insights} />} />
+              <Route path="/metodologia" element={<MethodologyIndex />} />
+              <Route path="/metodologia/:id" element={<Methodology />} />
             </Routes>
           )}
           {!data && !error && <p>Cargando…</p>}

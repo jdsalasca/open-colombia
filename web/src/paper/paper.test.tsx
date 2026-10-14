@@ -1,4 +1,5 @@
 import { render, screen } from '@testing-library/react'
+import { MemoryRouter } from 'react-router-dom'
 import { describe, expect, it } from 'vitest'
 import { Gauge } from './Gauge'
 import { LineChart } from './LineChart'
@@ -13,17 +14,31 @@ const base: Series = {
 
 describe('PaperCard', () => {
   it('shows "sin dato" and no number when the series is empty', () => {
-    render(<PaperCard series={base} />)
+    render(<MemoryRouter><PaperCard series={base} /></MemoryRouter>)
     expect(screen.getByText('sin dato')).toBeInTheDocument()
     expect(screen.queryByText(/NaN/)).toBeNull()
   })
 
   it('shows the latest value with source and period', () => {
     const s = { ...base, points: [{ date: '2023-01-01', value: 9 }, { date: '2024-01-01', value: 8.5 }] }
-    render(<PaperCard series={s} />)
+    render(<MemoryRouter><PaperCard series={s} /></MemoryRouter>)
     expect(screen.getByLabelText(/Desempleo: 8,5/)).toBeInTheDocument()
     expect(screen.getByText('Banco Mundial')).toBeInTheDocument()
-    expect(screen.getByText(/2024/)).toBeInTheDocument()
+    expect(screen.getAllByText(/2024/).length).toBeGreaterThan(0)
+  })
+
+  it('names the previous period and value instead of "dato anterior"', () => {
+    const s = { ...base, points: [{ date: '2023-01-01', value: 9 }, { date: '2024-01-01', value: 8.5 }] }
+    render(<MemoryRouter><PaperCard series={s} /></MemoryRouter>)
+    expect(screen.getByText(/vs\.\s+2023: 9 %/)).toBeInTheDocument()
+    expect(screen.queryByText(/dato anterior/)).toBeNull()
+  })
+
+  it('shows no comparison with a single point and links to the methodology', () => {
+    const s = { ...base, points: [{ date: '2024-01-01', value: 8.5 }] }
+    render(<MemoryRouter><PaperCard series={s} /></MemoryRouter>)
+    expect(screen.queryByText(/vs\./)).toBeNull()
+    expect(screen.getByRole('link', { name: /cómo se calcula/ })).toHaveAttribute('href', '/metodologia/x')
   })
 })
 

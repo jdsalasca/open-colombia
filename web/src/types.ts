@@ -55,3 +55,71 @@ export interface RefreshReport {
 export type RefreshOutcome =
   | { rateLimited: false; report: RefreshReport }
   | { rateLimited: true; retryAfter: number }
+
+export interface RatePoint {
+  date: string
+  value: number
+}
+
+export interface Rates {
+  n: number
+  from: string
+  to: string
+  change: number
+  changePct: number | null
+  annualizedPct: number | null
+  mean: number
+  min: RatePoint
+  max: RatePoint
+  stdDev: number
+}
+
+export interface SeriesResponse {
+  series: Series
+  range: string
+  availableRanges: string[]
+  rates: Rates | null
+  higherIsBetter: boolean | null
+}
+
+export interface Methodology {
+  id: string
+  name: string
+  theme: string
+  description: string
+  method: string
+  source: string
+  sourceUrl: string
+  queryUrl: string
+  seriesUrl: string
+  periodicity: string
+  unit: string
+  higherIsBetter: boolean | null
+}
+
+export interface BreakdownItem {
+  label: string
+  value: number
+  share: number
+}
+
+export interface Breakdown {
+  dim: string
+  range: string
+  from: string
+  total: number
+  items: BreakdownItem[]
+  source: string
+  queryUrl: string
+}
+
+export class ApiError extends Error {
+  status: number
+  availableRanges?: string[]
+
+  constructor(message: string, status: number, availableRanges?: string[]) {
+    super(message)
+    this.status = status
+    this.availableRanges = availableRanges
+  }
+}

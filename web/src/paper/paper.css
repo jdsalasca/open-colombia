@@ -107,3 +107,15 @@ a { color: inherit; }
   .grid { grid-template-columns: 1fr; }
   .masthead h1 { font-size: 1.4rem; }
 }
+
+/* v2: rangos, tasas, metodología */
+.ranges { display: flex; flex-wrap: wrap; gap: 6px; margin: 4px 0 10px; }
+.range-chip {
+  font: inherit; font-size: 0.85rem; font-weight: 700; padding: 4px 12px; cursor: pointer;
+  background: var(--paper); color: var(--ink); border: 0; border-radius: 3px; box-shadow: 0 2px 0 var(--shadow);
+}
+.range-chip[aria-pressed='true'] { background: var(--yellow); }
+.rates { display: grid; grid-template-columns: max-content 1fr; gap: 4px 14px; margin: 10px 0 0; font-size: 0.9rem; }
+.rates dt { font-weight: 800; }
+.rates dd { margin: 0; }
+.links { padding-left: 18px; line-height: 1.6; overflow-wrap: anywhere; }
