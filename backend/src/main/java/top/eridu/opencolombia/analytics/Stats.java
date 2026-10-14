@@ -69,6 +69,35 @@ public final class Stats {
                 .filter(v -> !Double.isNaN(v));
     }
 
+    /** Solo las observaciones de los últimos {@code years} años respecto del dato más reciente. */
+    public static Series recent(Series s, int years) {
+        return s.latest().map(l -> {
+            LocalDate from = l.date().minusYears(years);
+            return s.withPoints(s.points().stream().filter(p -> p.date().isAfter(from)).toList());
+        }).orElse(s);
+    }
+
+    /**
+     * Correlación entre las variaciones anuales (primeras diferencias) de dos series, alineadas por año.
+     * Distingue co-movimiento real de dos series que solo comparten tendencia.
+     */
+    public static Optional<Double> differenceCorrelation(Series a, Series b) {
+        Map<Integer, Double> ma = byYear(a), mb = byYear(b);
+        var years = ma.keySet().stream().filter(mb::containsKey).toList();
+        var dx = new java.util.ArrayList<Double>();
+        var dy = new java.util.ArrayList<Double>();
+        for (int i = 1; i < years.size(); i++) {
+            if (years.get(i) - years.get(i - 1) != 1) continue; // solo años consecutivos
+            dx.add(ma.get(years.get(i)) - ma.get(years.get(i - 1)));
+            dy.add(mb.get(years.get(i)) - mb.get(years.get(i - 1)));
+        }
+        if (dx.size() < MIN_N) return Optional.empty();
+        double v = new PearsonsCorrelation().correlation(
+                dx.stream().mapToDouble(Double::doubleValue).toArray(),
+                dy.stream().mapToDouble(Double::doubleValue).toArray());
+        return Double.isNaN(v) ? Optional.empty() : Optional.of(v);
+    }
+
     /** Regresión simple de y sobre x, alineando por año calendario. */
     public static Optional<OlsResult> regress(Series x, Series y) {
         return align(x, y).map(p -> {

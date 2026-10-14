@@ -38,9 +38,28 @@ class InsightServiceTest {
                 .findFirst().orElseThrow();
         assertThat(i.confidence().n()).isEqualTo(10);
         assertThat(i.confidence().r2()).isGreaterThan(0.99);
-        assertThat(i.confidence().level()).isEqualTo("media");
-        assertThat(i.finding()).contains("n = 10").contains("R²");
+        assertThat(i.confidence().level()).isEqualTo("baja"); // solo comparten tendencia
+        assertThat(i.finding()).contains("n = 10").contains("R²").contains("espuria");
         assertThat(i.finding()).containsIgnoringCase("no implica causalidad");
+    }
+
+    @Test
+    void genuineComovementKeepsMediaLevel() {
+        var store = new SeriesStore(dir);
+        List<Point> xs = new ArrayList<>();
+        List<Point> ys = new ArrayList<>();
+        for (int i = 0; i < 12; i++) {
+            double x = 40 + i * -0.5 + Math.sin(i) * 3;
+            xs.add(new Point(LocalDate.of(2010 + i, 1, 1), x));
+            ys.add(new Point(LocalDate.of(2010 + i, 1, 1), 0.8 * x));
+        }
+        store.put(series("empleo-vulnerable", 1, 0, 0).withPoints(xs));
+        store.put(series("pobreza", 1, 0, 0).withPoints(ys));
+        Insight i = new InsightService(store).insights().stream()
+                .filter(x -> x.themeId().equals("empleo")).filter(x -> x.finding().contains("pobreza"))
+                .findFirst().orElseThrow();
+        assertThat(i.confidence().level()).isEqualTo("media");
+        assertThat(i.finding()).doesNotContain("espuria");
     }
 
     @Test

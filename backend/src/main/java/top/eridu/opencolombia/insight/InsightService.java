@@ -64,7 +64,11 @@ public class InsightService {
         return String.format(ES, "%.2f", v);
     }
 
-    private Insight trend(Def d, Series s) {
+    /** Las tendencias y proyecciones usan solo la ventana reciente: una recta de 60 años no predice el próximo. */
+    private static final int RECENT_YEARS = 10;
+
+    private Insight trend(Def d, Series full) {
+        Series s = Stats.recent(full, RECENT_YEARS);
         int n = s.points().size();
         Optional<OlsResult> t = Stats.trend(s);
         if (t.isEmpty()) {
@@ -76,7 +80,8 @@ public class InsightService {
         Optional<Forecast> fc = Stats.forecast(s, 1);
         String last = s.latest().map(p -> "último dato %s (%d)".formatted(f(p.value()), p.date().getYear()))
                 .orElse("sin último dato");
-        String finding = "Tendencia de «%s»: %s %s por año (n = %d, R² = %s); %s.%s".formatted(
+        String finding = "Tendencia reciente (últimos %d años) de «%s»: %s %s por año (n = %d, R² = %s); %s.%s".formatted(
+                RECENT_YEARS,
                 s.name(), (r.slope() >= 0 ? "+" : "") + f(r.slope()), s.unit(), r.n(), f(r.r2()), last,
                 fc.map(x -> " Con esa tendencia lineal, la proyección a un año es %s (intervalo 95%%: %s a %s)."
                         .formatted(f(x.value()), f(x.low()), f(x.high()))).orElse(""));
@@ -101,7 +106,15 @@ public class InsightService {
                 + "(n = %d, R² = %s, correlación = %s). Es una asociación estadística; no implica causalidad.")
                 .formatted(x.name(), y.name(), x.unit(), (r.slope() >= 0 ? "+" : "") + f(r.slope()), y.unit(),
                         r.n(), f(r.r2()), corr.map(InsightService::f).orElse("n/d"));
+        Optional<Double> dc = Stats.differenceCorrelation(x, y);
         String lvl = level(r.n(), r.r2());
+        boolean trendOnly = r.r2() >= 0.5 && (dc.isEmpty() || Math.abs(dc.get()) < 0.3);
+        finding += " En variaciones anuales la correlación es %s.".formatted(dc.map(InsightService::f).orElse("n/d"));
+        if (trendOnly && !lvl.equals("insuficiente")) {
+            finding += " Ojo: ambas series tienen tendencia y sus variaciones casi no co-mueven, "
+                    + "así que la asociación en niveles puede ser espuria.";
+            lvl = "baja";
+        }
         return new Insight(d.theme(), d.title(), finding, d.literature(),
                 lvl.equals("insuficiente") ? NO_EVIDENCE : d.proposal(), new Confidence(r.n(), r.r2(), lvl));
     }

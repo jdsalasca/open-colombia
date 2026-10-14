@@ -75,4 +75,20 @@ class StatsTest {
     void yoyWithZeroBaseIsEmpty() {
         assertThat(Stats.yoyChange(annual(2, i -> i == 0 ? 0 : 5))).isEmpty();
     }
+
+    @Test
+    void recentKeepsOnlyLastTenYears() {
+        var s = annual(30, i -> i);
+        var r = Stats.recent(s, 10);
+        assertThat(r.points()).hasSize(10);
+        assertThat(r.latest().orElseThrow().value()).isEqualTo(29.0);
+    }
+
+    @Test
+    void sharedTrendIsNotComovement() {
+        var x = annual(13, i -> i + (i % 3 == 0 ? 0.5 : 0));
+        var y = annual(13, i -> i + (i % 2 == 0 ? 0.5 : 0));
+        assertThat(Stats.correlation(x, y).orElseThrow()).isGreaterThan(0.99);
+        assertThat(Stats.differenceCorrelation(x, y).orElseThrow()).isCloseTo(0.0, within(0.1));
+    }
 }
