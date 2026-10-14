@@ -17,8 +17,6 @@ import top.eridu.opencolombia.model.Series;
 /** Indicadores anuales del Banco Mundial para Colombia. */
 @Component
 public class WorldBankConnector implements SourceConnector {
-    private static final String API = "https://api.worldbank.org/v2/country/COL/indicator/%s?format=json&per_page=200";
-    private static final String PAGE = "https://data.worldbank.org/indicator/%s?locations=CO";
 
     private final RestClient http;
     private final Clock clock;
@@ -38,12 +36,12 @@ public class WorldBankConnector implements SourceConnector {
     public Series fetch(IndicatorSpec spec) throws SourceException {
         String body;
         try {
-            body = http.get().uri(URI.create(API.formatted(spec.ref()))).retrieve().body(String.class);
+            body = http.get().uri(URI.create(spec.queryUrl())).retrieve().body(String.class);
         } catch (RestClientException e) {
             throw new SourceException("Banco Mundial no respondió para " + spec.ref(), e);
         }
         return new Series(spec.id(), spec.theme().id(), spec.name(), spec.unit(), "Banco Mundial",
-                PAGE.formatted(spec.ref()), spec.periodicity(), parse(body), clock.instant());
+                spec.sourceUrl(), spec.periodicity(), parse(body), clock.instant());
     }
 
     private List<Point> parse(String body) throws SourceException {

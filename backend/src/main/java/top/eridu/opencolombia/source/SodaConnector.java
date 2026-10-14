@@ -7,11 +7,9 @@ import java.time.YearMonth;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
-import java.util.Map;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.client.RestClientException;
-import org.springframework.web.util.UriComponentsBuilder;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.json.JsonMapper;
 import top.eridu.opencolombia.model.Point;
@@ -20,8 +18,6 @@ import top.eridu.opencolombia.model.Series;
 /** Datasets de datos.gov.co (Socrata SODA), agregados en el servidor con SoQL. */
 @Component
 public class SodaConnector implements SourceConnector {
-    private static final String BASE = "https://www.datos.gov.co/resource/%s.json";
-    private static final String PAGE = "https://www.datos.gov.co/d/%s";
 
     private final RestClient http;
     private final Clock clock;
@@ -39,11 +35,7 @@ public class SodaConnector implements SourceConnector {
 
     @Override
     public Series fetch(IndicatorSpec spec) throws SourceException {
-        UriComponentsBuilder ub = UriComponentsBuilder.fromUriString(BASE.formatted(spec.ref()));
-        for (Map.Entry<String, String> e : spec.params().entrySet()) {
-            if (e.getKey().startsWith("$")) ub.queryParam(e.getKey(), e.getValue()); // el resto son banderas internas
-        }
-        URI uri = ub.build().encode().toUri();
+        URI uri = URI.create(spec.queryUrl());
         String body;
         try {
             body = http.get().uri(uri).retrieve().body(String.class);
@@ -51,7 +43,7 @@ public class SodaConnector implements SourceConnector {
             throw new SourceException("datos.gov.co no respondió para " + spec.ref(), e);
         }
         return new Series(spec.id(), spec.theme().id(), spec.name(), spec.unit(), "datos.gov.co",
-                PAGE.formatted(spec.ref()), spec.periodicity(), parse(body, spec), clock.instant());
+                spec.sourceUrl(), spec.periodicity(), parse(body, spec), clock.instant());
     }
 
     private List<Point> parse(String body, IndicatorSpec spec) throws SourceException {
