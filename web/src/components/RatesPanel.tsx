@@ -15,12 +15,14 @@ export function RatesPanel({ rates, unit, periodicity = 'mensual' }: Props) {
     return <p className="card-empty">Tasas: datos insuficientes en este rango.</p>
   }
   const when = (d: string) => periodLabel(d, periodicity)
+  // el cambio entre dos porcentajes se expresa en puntos porcentuales
+  const changeUnit = unit.startsWith('%') ? 'pp' : unit
   return (
     <dl className="rates">
       <dt>Variación</dt>
       <dd>
         {rates.change > 0 ? '+' : ''}
-        {fmt(rates.change)} {unit} ({pct(rates.changePct)})
+        {fmt(rates.change)} {changeUnit} ({pct(rates.changePct)})
       </dd>
       <dt>Anualizada</dt>
       <dd>{pct(rates.annualizedPct)}</dd>

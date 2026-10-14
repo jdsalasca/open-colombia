@@ -29,6 +29,20 @@ describe('RatesPanel', () => {
     expect(container.textContent).not.toMatch(/NaN/)
   })
 
+  it('labels the change of a percentage series in percentage points', () => {
+    render(
+      <RatesPanel
+        unit="%"
+        rates={{
+          n: 10, from: '2016-01-01', to: '2025-01-01', change: -0.67, changePct: -7.5, annualizedPct: null, mean: 9,
+          min: { date: '2016-01-01', value: 8 }, max: { date: '2020-01-01', value: 12 }, stdDev: 1.2,
+        }}
+        periodicity="anual"
+      />,
+    )
+    expect(screen.getByText('Variación').nextElementSibling).toHaveTextContent('-0,67 pp')
+  })
+
   it('shows a dash for a null annualized rate and the dates of min and max', () => {
     render(
       <RatesPanel

@@ -30,6 +30,7 @@ export function rangesFor(periodicity: string): string[] {
   return periodicity === 'mensual' ? ['3m', '6m', '1a', '2a', 'todo'] : ['5a', '10a', 'todo']
 }
 
+/** Mensuales abren en 1 año; anuales en 10 años (una historia de 60 años aplasta la tendencia reciente). */
 export function defaultRange(periodicity: string): string {
-  return rangesFor(periodicity).includes('1a') ? '1a' : 'todo'
+  return periodicity === 'mensual' ? '1a' : '10a'
 }

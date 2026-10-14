@@ -29,6 +29,17 @@ public class SeriesController {
         this.specs = specs;
     }
 
+    /**
+     * Tasas de la ventana. Una serie cuya unidad ya es un porcentaje (inflación, desempleo) no tiene tasa
+     * «anualizada» con sentido: anualizar la variación de una tasa es engañoso, así que se omite.
+     */
+    private static RatesResult rates(Series windowed, IndicatorSpec spec) {
+        return Rates.compute(windowed).map(r -> spec.unit().startsWith("%")
+                ? new RatesResult(r.n(), r.from(), r.to(), r.change(), r.changePct(), null, r.mean(), r.min(),
+                        r.max(), r.stdDev())
+                : r).orElse(null);
+    }
+
     @GetMapping("/api/series/{id}")
     public ResponseEntity<?> series(@PathVariable String id,
                                     @RequestParam(name = "range", defaultValue = "todo") String rangeCode) {
@@ -46,6 +57,6 @@ public class SeriesController {
         Series full = store.get(id).orElseGet(() -> spec.get().placeholder());
         Series windowed = range.get().apply(full);
         return ResponseEntity.ok(new SeriesResponse(windowed, range.get().code(), codes,
-                Rates.compute(windowed).orElse(null), spec.get().higherIsBetter()));
+                rates(windowed, spec.get()), spec.get().higherIsBetter()));
     }
 }

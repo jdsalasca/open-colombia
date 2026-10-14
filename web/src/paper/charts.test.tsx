@@ -50,6 +50,17 @@ describe('HBarChart', () => {
     expect(container.querySelectorAll('details tbody tr')).toHaveLength(2)
   })
 
+  it('keeps the OTROS bucket last even when it is the largest', () => {
+    const items = [
+      { label: 'OTROS', value: 100, share: 0.7 },
+      { label: 'A', value: 30, share: 0.2 },
+      { label: 'B', value: 20, share: 0.1 },
+    ]
+    const { container } = render(<HBarChart items={items} />)
+    const labels = Array.from(container.querySelectorAll('.hbar-label')).map((e) => e.textContent)
+    expect(labels).toEqual(['A', 'B', 'OTROS'])
+  })
+
   it('shows "sin datos" when empty', () => {
     render(<HBarChart items={[]} />)
     expect(screen.getByText(/sin datos/i)).toBeInTheDocument()

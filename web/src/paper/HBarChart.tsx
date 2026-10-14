@@ -9,7 +9,12 @@ interface Props {
 
 /** Barras horizontales ordenadas de mayor a menor; para muchas categorías, donde una torta no se lee. */
 export function HBarChart({ items, caption = 'Composición' }: Props) {
-  const sorted = [...items].filter((i) => Number.isFinite(i.value)).sort((a, b) => b.value - a.value)
+  const OTHERS = 'OTROS'
+  // de mayor a menor, pero el cajón «OTROS» siempre al final aunque sea el más grande
+  const sorted = [...items]
+    .filter((i) => Number.isFinite(i.value))
+    .sort((a, b) =>
+      a.label === OTHERS ? 1 : b.label === OTHERS ? -1 : b.value - a.value)
   if (sorted.length === 0) return <p className="card-empty">sin datos en este rango</p>
   const max = Math.max(...sorted.map((i) => i.value)) || 1
   return (

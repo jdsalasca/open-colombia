@@ -75,6 +75,15 @@ class SeriesApiTest {
     }
 
     @Test
+    void annualizedRateIsOmittedForSeriesThatAreAlreadyPercentages() throws Exception {
+        mvc.perform(get("/api/series/desempleo?range=10a")).andExpect(status().isOk())
+                .andExpect(jsonPath("$.rates.n").value(10))
+                .andExpect(jsonPath("$.rates.annualizedPct").doesNotExist());
+        mvc.perform(get("/api/series/trm?range=2a")).andExpect(status().isOk())
+                .andExpect(jsonPath("$.rates.annualizedPct").exists());
+    }
+
+    @Test
     void spaRoutesForwardToIndex() throws Exception {
         mvc.perform(get("/metodologia")).andExpect(status().isOk())
                 .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.forwardedUrl("/index.html"));
