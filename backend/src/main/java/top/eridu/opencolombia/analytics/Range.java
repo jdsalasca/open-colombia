@@ -34,12 +34,13 @@ public enum Range {
                 : List.of(Y5, Y10, ALL);
     }
 
-    /** Puntos con fecha posterior a (último − duración); el último dato siempre se conserva. */
+    /** Puntos desde (último − duración) inclusive; el último dato siempre se conserva. */
     public Series apply(Series s) {
         if (this == ALL) return s;
         return s.latest().map(l -> {
             LocalDate from = l.date().minusMonths(months);
-            return s.withPoints(s.points().stream().filter(p -> p.date().isAfter(from)).toList());
+            // inclusivo: "1a" incluye el dato de hace 12 meses, para que la variación sea de 12 meses completos
+            return s.withPoints(s.points().stream().filter(p -> !p.date().isBefore(from)).toList());
         }).orElse(s);
     }
 }

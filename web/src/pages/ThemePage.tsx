@@ -42,7 +42,7 @@ function SeriesBlock({ series }: { series: Series }) {
         <>
           <LineChart points={points} unit={series.unit} trend={ols(points)} />
           {series.periodicity === 'anual' && (
-            <YoYBars points={points} higherIsBetter={res?.higherIsBetter ?? null} />
+            <YoYBars points={points} higherIsBetter={res?.higherIsBetter ?? null} unit={series.unit} />
           )}
           <RatesPanel rates={res?.rates ?? null} unit={series.unit} periodicity={series.periodicity} />
         </>

@@ -68,6 +68,22 @@ describe('HBarChart', () => {
 })
 
 describe('YoYBars', () => {
+  it('skips a pair separated by a gap instead of calling it year-over-year', () => {
+    const pts: Point[] = [
+      { date: '2010-01-01', value: 10 }, { date: '2011-01-01', value: 11 }, { date: '2014-01-01', value: 20 },
+      { date: '2015-01-01', value: 22 },
+    ]
+    const { container } = render(<YoYBars points={pts} higherIsBetter={true} />)
+    expect(container.querySelectorAll('rect.bar')).toHaveLength(2) // 2010→2011 y 2014→2015; 2011→2014 no
+  })
+
+  it('shows percentage-point differences for % series, including from a zero or negative base', () => {
+    const { container } = render(<YoYBars points={yearly([0, 5, -2, 3])} higherIsBetter={false} unit="%" />)
+    expect(container.querySelectorAll('rect.bar')).toHaveLength(3)
+    expect(container.innerHTML).not.toMatch(/NaN|Infinity/)
+    expect(screen.getAllByText(/puntos porcentuales/i).length).toBeGreaterThan(0)
+  })
+
   it('skips a zero base instead of producing Infinity/NaN', () => {
     const { container } = render(<YoYBars points={yearly([0, 5, 10, 8])} higherIsBetter={true} />)
     expect(container.innerHTML).not.toMatch(/NaN|Infinity/)
@@ -110,6 +126,7 @@ describe('Breakdowns panel', () => {
   const bd: Breakdown = {
     dim: 'sexo', range: '1a', from: '2025-10-13', total: 100, source: 'datos.gov.co', queryUrl: 'https://q',
     items: [{ label: 'MASCULINO', value: 90, share: 0.9 }, { label: 'FEMENINO', value: 10, share: 0.1 }],
+    to: '2026-08-31',
   }
 
   it('loads a breakdown and re-queries when the dimension changes', async () => {
@@ -119,6 +136,12 @@ describe('Breakdowns panel', () => {
     await waitFor(() => expect(fetchMock).toHaveBeenCalledWith('/api/breakdowns/homicidios?dim=sexo&range=1a'))
     await userEvent.click(screen.getByRole('button', { name: 'zona' }))
     await waitFor(() => expect(fetchMock).toHaveBeenCalledWith('/api/breakdowns/homicidios?dim=zona&range=1a'))
+  })
+
+  it('states the exact window the composition covers', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response(JSON.stringify(bd), { status: 200 })))
+    render(<Breakdowns />)
+    expect(await screen.findByText(/2025-10-13 al 2026-08-31/)).toBeInTheDocument()
   })
 
   it('shows a clear message when the source is down (502)', async () => {

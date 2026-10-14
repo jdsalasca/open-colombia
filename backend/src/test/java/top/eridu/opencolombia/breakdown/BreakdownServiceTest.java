@@ -3,7 +3,6 @@ package top.eridu.opencolombia.breakdown;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.hamcrest.Matchers.startsWith;
-import static org.springframework.test.web.client.ExpectedCount.once;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withServerError;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
@@ -26,6 +25,8 @@ import top.eridu.opencolombia.source.SourceException;
 
 class BreakdownServiceTest {
     private static final String BASE = "https://www.datos.gov.co/resource/m8fd-ahd9.json";
+    /** El dataset termina el 31 de agosto: la ventana debe anclarse ahí, no en el reloj. */
+    private static final String MAX_DATE = "[{\"m\":\"2026-08-31T00:00:00.000\"}]";
 
     static class MutableClock extends Clock {
         Instant now = Instant.parse("2026-10-13T00:00:00Z");
@@ -61,21 +62,42 @@ class BreakdownServiceTest {
         return sb.append(']').toString();
     }
 
+    private void expectMaxDate() {
+        server.expect(requestTo(startsWith(BASE))).andRespond(withSuccess(MAX_DATE, MediaType.APPLICATION_JSON));
+    }
+
+    private void expectRows(String body) {
+        server.expect(requestTo(startsWith(BASE))).andRespond(withSuccess(body, MediaType.APPLICATION_JSON));
+    }
+
     @Test
-    void sexoFromRealFixtureSharesSumToOne() throws Exception {
-        server.expect(requestTo(startsWith(BASE))).andRespond(withSuccess(fx("breakdown-sexo.json"), MediaType.APPLICATION_JSON));
+    void windowIsAnchoredOnTheDatasetsLastDateNotOnTheClock() throws Exception {
+        expectMaxDate();
+        expectRows(fx("breakdown-sexo.json"));
         var b = service.get("sexo", Range.Y1);
+        assertThat(b.to()).isEqualTo(LocalDate.of(2026, 8, 31));
+        assertThat(b.from()).isEqualTo(LocalDate.of(2025, 9, 1));
         assertThat(b.items()).hasSize(3);
         assertThat(b.items().get(0).value()).isGreaterThan(b.items().get(1).value());
-        assertThat(b.items().stream().mapToDouble(Breakdown.Item::share).sum()).isCloseTo(1.0, org.assertj.core.data.Offset.offset(1e-9));
+        assertThat(b.items().stream().mapToDouble(Breakdown.Item::share).sum())
+                .isCloseTo(1.0, org.assertj.core.data.Offset.offset(1e-9));
         assertThat(b.total()).isEqualTo(b.items().stream().mapToDouble(Breakdown.Item::value).sum());
-        assertThat(b.from()).isEqualTo(LocalDate.of(2025, 10, 13));
-        assertThat(b.queryUrl()).startsWith(BASE).contains("fecha_hecho");
+        assertThat(b.queryUrl()).startsWith(BASE).contains("fecha_hecho").contains("2025-09-01");
+    }
+
+    @Test
+    void threeMonthWindowEndsAtTheLastDate() throws Exception {
+        expectMaxDate();
+        expectRows(rows(2));
+        var b = service.get("zona", Range.M3);
+        assertThat(b.from()).isEqualTo(LocalDate.of(2026, 6, 1));
+        assertThat(b.to()).isEqualTo(LocalDate.of(2026, 8, 31));
     }
 
     @Test
     void departamentoKeepsTopEightPlusOtros() throws Exception {
-        server.expect(requestTo(startsWith(BASE))).andRespond(withSuccess(rows(11), MediaType.APPLICATION_JSON));
+        expectMaxDate();
+        expectRows(rows(11));
         var b = service.get("departamento", Range.Y1);
         assertThat(b.items()).hasSize(9);
         assertThat(b.items().get(8).label()).isEqualTo("OTROS");
@@ -84,14 +106,16 @@ class BreakdownServiceTest {
 
     @Test
     void pieDimensionKeepsTopSixPlusOtros() throws Exception {
-        server.expect(requestTo(startsWith(BASE))).andRespond(withSuccess(rows(9), MediaType.APPLICATION_JSON));
+        expectMaxDate();
+        expectRows(rows(9));
         assertThat(service.get("arma", Range.Y1).items()).hasSize(7);
     }
 
     @Test
     void singleCategoryAndEmptyAreSafe() throws Exception {
-        server.expect(requestTo(startsWith(BASE))).andRespond(withSuccess("[{\"k\":\"URBANA\",\"v\":\"5\"}]", MediaType.APPLICATION_JSON));
-        server.expect(requestTo(startsWith(BASE))).andRespond(withSuccess("[]", MediaType.APPLICATION_JSON));
+        expectMaxDate();
+        expectRows("[{\"k\":\"URBANA\",\"v\":\"5\"}]");
+        expectRows("[]"); // la fecha máxima ya está en caché: la segunda llamada solo pide filas
         var one = service.get("zona", Range.M3);
         assertThat(one.items()).hasSize(1);
         assertThat(one.items().get(0).share()).isEqualTo(1.0);
@@ -103,18 +127,26 @@ class BreakdownServiceTest {
 
     @Test
     void cachesForAnHourThenRefetches() throws Exception {
-        server.expect(once(), requestTo(startsWith(BASE))).andRespond(withSuccess(rows(2), MediaType.APPLICATION_JSON));
-        server.expect(once(), requestTo(startsWith(BASE))).andRespond(withSuccess(rows(2), MediaType.APPLICATION_JSON));
+        expectMaxDate();
+        expectRows(rows(2));
+        expectMaxDate();
+        expectRows(rows(2));
         service.get("zona", Range.Y1);
-        service.get("zona", Range.Y1); // desde caché: no consume la segunda expectativa
+        service.get("zona", Range.Y1); // desde caché: no consume nada
         clock.now = clock.now.plus(Duration.ofMinutes(61));
-        service.get("zona", Range.Y1); // caché vencida: consume la segunda
+        service.get("zona", Range.Y1); // caché vencida: vuelve a pedir fecha máxima y filas
         server.verify();
     }
 
     @Test
     void upstreamErrorThrowsSourceException() {
         server.expect(requestTo(startsWith(BASE))).andRespond(withServerError());
+        assertThatThrownBy(() -> service.get("sexo", Range.Y1)).isInstanceOf(SourceException.class);
+    }
+
+    @Test
+    void datasetWithoutDatesThrowsSourceException() {
+        server.expect(requestTo(startsWith(BASE))).andRespond(withSuccess("[{}]", MediaType.APPLICATION_JSON));
         assertThatThrownBy(() -> service.get("sexo", Range.Y1)).isInstanceOf(SourceException.class);
     }
 

@@ -38,7 +38,7 @@ class BreakdownApiTest {
 
     @Test
     void okReturnsBreakdown() throws Exception {
-        when(service.get(eq("sexo"), eq(Range.Y1))).thenReturn(new Breakdown("sexo", "1a", LocalDate.of(2025, 10, 13),
+        when(service.get(eq("sexo"), eq(Range.Y1))).thenReturn(new Breakdown("sexo", "1a", LocalDate.of(2025, 8, 31), LocalDate.of(2026, 8, 31),
                 10, List.of(new Breakdown.Item("MASCULINO", 10, 1.0)), "datos.gov.co", "https://x"));
         mvc.perform(get("/api/breakdowns/homicidios?dim=sexo&range=1a")).andExpect(status().isOk())
                 .andExpect(jsonPath("$.items[0].label").value("MASCULINO"));

@@ -9,8 +9,8 @@ import top.eridu.opencolombia.model.Point;
 import top.eridu.opencolombia.model.Series;
 
 public final class Rates {
-    /** Un rango de 12 meses de datos mensuales abarca ~334 días; la fórmula escala por días reales. */
-    private static final long MIN_DAYS_FOR_ANNUALIZED = 330;
+    /** La anualizada exige un año de cambio completo; la fórmula escala por días reales. */
+    private static final long MIN_DAYS_FOR_ANNUALIZED = 360;
 
     private Rates() {}
 

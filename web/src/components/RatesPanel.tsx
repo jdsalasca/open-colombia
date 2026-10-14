@@ -18,11 +18,14 @@ export function RatesPanel({ rates, unit, periodicity = 'mensual' }: Props) {
   // el cambio entre dos porcentajes se expresa en puntos porcentuales
   const changeUnit = unit.startsWith('%') ? 'pp' : unit
   return (
+    <>
+    <p className="chip">Ventana: del {when(rates.from)} al {when(rates.to)} · {rates.n} datos</p>
     <dl className="rates">
       <dt>Variación</dt>
       <dd>
         {rates.change > 0 ? '+' : ''}
-        {fmt(rates.change)} {changeUnit} ({pct(rates.changePct)})
+        {fmt(rates.change)} {changeUnit}
+        {rates.changePct !== null && ` (${pct(rates.changePct)})`}
       </dd>
       <dt>Anualizada</dt>
       <dd>{pct(rates.annualizedPct)}</dd>
@@ -35,5 +38,6 @@ export function RatesPanel({ rates, unit, periodicity = 'mensual' }: Props) {
       <dt>Volatilidad</dt>
       <dd>{fmt(rates.stdDev)} {unit} (desv. est., n = {rates.n})</dd>
     </dl>
+    </>
   )
 }

@@ -30,6 +30,10 @@ public class BreakdownService {
 
     private record Entry(Instant at, Breakdown value) {}
 
+    private record Latest(Instant at, LocalDate date) {}
+
+    private volatile Latest latest;
+
     private final RestClient http;
     private final Clock clock;
     private final JsonMapper mapper = JsonMapper.builder().build();
@@ -52,7 +56,9 @@ public class BreakdownService {
         Instant now = clock.instant();
         if (hit != null && Duration.between(hit.at(), now).compareTo(TTL) < 0) return hit.value();
 
-        LocalDate from = LocalDate.now(clock).minusMonths(range.months());
+        // la ventana se ancla en el último dato del dataset (publica con rezago), no en la fecha de hoy
+        LocalDate to = lastDate(now);
+        LocalDate from = to.minusMonths(range.months()).plusDays(1);
         URI uri = UriComponentsBuilder.fromUriString(DATASET)
                 .queryParam("$select", column + " as k, sum(cantidad) as v")
                 .queryParam("$where", "fecha_hecho >= '" + from + "'")
@@ -66,12 +72,37 @@ public class BreakdownService {
         } catch (RestClientException e) {
             throw new SourceException("datos.gov.co no respondió para la composición", e);
         }
-        Breakdown b = parse(dim, range, from, uri.toString(), body);
+        Breakdown b = parse(dim, range, from, to, uri.toString(), body);
         cache.put(key, new Entry(now, b));
         return b;
     }
 
-    private Breakdown parse(String dim, Range range, LocalDate from, String url, String body)
+    /** Fecha máxima de fecha_hecho en el dataset, cacheada con el mismo TTL que las composiciones. */
+    private LocalDate lastDate(Instant now) throws SourceException {
+        Latest l = latest;
+        if (l != null && Duration.between(l.at(), now).compareTo(TTL) < 0) return l.date();
+        URI uri = UriComponentsBuilder.fromUriString(DATASET)
+                .queryParam("$select", "max(fecha_hecho) as m")
+                .build().encode().toUri();
+        String body;
+        try {
+            body = http.get().uri(uri).retrieve().body(String.class);
+        } catch (RestClientException e) {
+            throw new SourceException("datos.gov.co no respondió para la fecha del dataset", e);
+        }
+        try {
+            JsonNode root = mapper.readTree(body == null ? "[]" : body);
+            JsonNode m = root.isArray() && root.size() > 0 ? root.get(0).get("m") : null;
+            if (m == null || m.isNull() || m.asString().length() < 10) throw new SourceException("dataset sin fechas");
+            LocalDate d = LocalDate.parse(m.asString().substring(0, 10));
+            latest = new Latest(now, d);
+            return d;
+        } catch (RuntimeException e) {
+            throw new SourceException("Fecha del dataset ilegible", e);
+        }
+    }
+
+    private Breakdown parse(String dim, Range range, LocalDate from, LocalDate to, String url, String body)
             throws SourceException {
         JsonNode root;
         try {
@@ -105,6 +136,6 @@ public class BreakdownService {
         double total = top.stream().mapToDouble(Raw::value).sum();
         List<Breakdown.Item> items = top.stream()
                 .map(r -> new Breakdown.Item(r.label(), r.value(), total == 0 ? 0 : r.value() / total)).toList();
-        return new Breakdown(dim, range.code(), from, total, items, "datos.gov.co", url);
+        return new Breakdown(dim, range.code(), from, to, total, items, "datos.gov.co", url);
     }
 }

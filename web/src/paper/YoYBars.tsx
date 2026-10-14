@@ -6,6 +6,8 @@ interface Props {
   points: Point[]
   /** true/false: subir es bueno/malo; null: neutro. */
   higherIsBetter: boolean | null
+  /** Unidad de la serie: si empieza con "%", la variación se expresa en puntos porcentuales. */
+  unit?: string
   maxBars?: number
 }
 
@@ -15,14 +17,17 @@ interface Bar {
 }
 
 /** Barras de variación interanual (%). Los saltos desde una base 0 se omiten. */
-export function YoYBars({ points, higherIsBetter, maxBars = 20 }: Props) {
+export function YoYBars({ points, higherIsBetter, unit = '', maxBars = 20 }: Props) {
+  const pp = unit.startsWith('%')
   const sorted = [...points].sort((a, b) => a.date.localeCompare(b.date))
   const bars: Bar[] = []
   for (let i = 1; i < sorted.length; i++) {
+    const yearGap = Number(sorted[i].date.slice(0, 4)) - Number(sorted[i - 1].date.slice(0, 4))
+    if (yearGap !== 1) continue // un hueco en los datos no es una variación interanual
     const prev = sorted[i - 1].value
-    if (prev === 0) continue
-    const pct = ((sorted[i].value - prev) / Math.abs(prev)) * 100
-    if (Number.isFinite(pct)) bars.push({ year: sorted[i].date.slice(0, 4), pct })
+    // las tasas (%) se comparan en puntos porcentuales: el cambio relativo de una tasa es engañoso
+    const v = pp ? sorted[i].value - prev : prev === 0 ? NaN : ((sorted[i].value - prev) / Math.abs(prev)) * 100
+    if (Number.isFinite(v)) bars.push({ year: sorted[i].date.slice(0, 4), pct: v })
   }
   const shown = bars.slice(-maxBars)
   if (shown.length === 0) return <p className="card-empty">sin datos suficientes para variación interanual</p>
@@ -55,6 +60,7 @@ export function YoYBars({ points, higherIsBetter, maxBars = 20 }: Props) {
         <text x={width - padX} y={height - 6} textAnchor="end" className="tick">{shown[shown.length - 1].year}</text>
       </svg>
       <p className="chip">
+        {pp ? 'Cambio anual en puntos porcentuales (pp). ' : 'Cambio anual en %. '}
         {higherIsBetter === null
           ? 'Color neutro: subir no es bueno ni malo por sí mismo.'
           : higherIsBetter
@@ -62,8 +68,8 @@ export function YoYBars({ points, higherIsBetter, maxBars = 20 }: Props) {
             : 'Verde: baja (mejor). Rojo: sube (peor).'}
       </p>
       <DataTable
-        caption="Variación interanual (%)"
-        headers={['Año', 'Variación %']}
+        caption={pp ? 'Variación interanual (puntos porcentuales)' : 'Variación interanual (%)'}
+        headers={['Año', pp ? 'Variación (pp)' : 'Variación %']}
         rows={shown.map((b) => [b.year, fmt(b.pct)])}
       />
     </figure>

@@ -52,8 +52,8 @@ class SeriesApiTest {
     void monthlySeriesSixMonthWindowWithRates() throws Exception {
         mvc.perform(get("/api/series/trm?range=6m")).andExpect(status().isOk())
                 .andExpect(jsonPath("$.range").value("6m"))
-                .andExpect(jsonPath("$.series.points.length()").value(6))
-                .andExpect(jsonPath("$.rates.n").value(6))
+                .andExpect(jsonPath("$.series.points.length()").value(7))
+                .andExpect(jsonPath("$.rates.n").value(7))
                 .andExpect(jsonPath("$.availableRanges", hasItem("3m")));
     }
 
@@ -77,8 +77,9 @@ class SeriesApiTest {
     @Test
     void annualizedRateIsOmittedForSeriesThatAreAlreadyPercentages() throws Exception {
         mvc.perform(get("/api/series/desempleo?range=10a")).andExpect(status().isOk())
-                .andExpect(jsonPath("$.rates.n").value(10))
-                .andExpect(jsonPath("$.rates.annualizedPct").doesNotExist());
+                .andExpect(jsonPath("$.rates.n").value(11))
+                .andExpect(jsonPath("$.rates.annualizedPct").doesNotExist())
+                .andExpect(jsonPath("$.rates.changePct").doesNotExist()); // cambio relativo de una tasa: engañoso
         mvc.perform(get("/api/series/trm?range=2a")).andExpect(status().isOk())
                 .andExpect(jsonPath("$.rates.annualizedPct").exists());
     }

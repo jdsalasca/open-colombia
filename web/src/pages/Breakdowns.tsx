@@ -43,7 +43,7 @@ export function Breakdowns() {
             <PieChart items={data.items} caption={`Homicidios por ${dim}`} />
           )}
           <p className="chip">
-            Desde {data.from} · total {data.total.toLocaleString('es-CO')} casos · Fuente:{' '}
+            Del {data.from} al {data.to} · total {data.total.toLocaleString('es-CO')} casos · Fuente:{' '}
             <a href={data.queryUrl} target="_blank" rel="noreferrer">consulta a datos.gov.co</a>
           </p>
         </>

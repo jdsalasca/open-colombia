@@ -30,12 +30,13 @@ public class SeriesController {
     }
 
     /**
-     * Tasas de la ventana. Una serie cuya unidad ya es un porcentaje (inflación, desempleo) no tiene tasa
-     * «anualizada» con sentido: anualizar la variación de una tasa es engañoso, así que se omite.
+     * Tasas de la ventana. Una serie cuya unidad ya es un porcentaje (inflación, desempleo, PIB) no tiene
+     * tasa «anualizada» ni variación relativa con sentido (-75 % de una tasa es engañoso): el cambio se
+     * expresa solo en puntos porcentuales.
      */
     private static RatesResult rates(Series windowed, IndicatorSpec spec) {
         return Rates.compute(windowed).map(r -> spec.unit().startsWith("%")
-                ? new RatesResult(r.n(), r.from(), r.to(), r.change(), r.changePct(), null, r.mean(), r.min(),
+                ? new RatesResult(r.n(), r.from(), r.to(), r.change(), null, null, r.mean(), r.min(),
                         r.max(), r.stdDev())
                 : r).orElse(null);
     }

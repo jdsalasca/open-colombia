@@ -43,6 +43,21 @@ describe('RatesPanel', () => {
     expect(screen.getByText('Variación').nextElementSibling).toHaveTextContent('-0,67 pp')
   })
 
+  it('shows the window dates and omits the relative change when it is null', () => {
+    render(
+      <RatesPanel
+        unit="%"
+        rates={{
+          n: 6, from: '2021-01-01', to: '2025-01-01', change: -8.16, changePct: null, annualizedPct: null, mean: 3,
+          min: { date: '2021-01-01', value: 1 }, max: { date: '2023-01-01', value: 5 }, stdDev: 1,
+        }}
+        periodicity="anual"
+      />,
+    )
+    expect(screen.getByText(/2021.*2025/)).toBeInTheDocument()
+    expect(screen.getByText('Variación').nextElementSibling).not.toHaveTextContent('(—)')
+  })
+
   it('shows a dash for a null annualized rate and the dates of min and max', () => {
     render(
       <RatesPanel

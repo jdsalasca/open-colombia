@@ -46,8 +46,10 @@ class RatesTest {
     void annualizedOnlyWhenSpanIsAboutAYearOrMore() {
         var twoYears = Rates.compute(monthly(25, i -> 100 * Math.pow(1.21, i / 24.0))).orElseThrow();
         assertThat(twoYears.annualizedPct()).isCloseTo(10.0, within(0.05));
-        var sixMonths = Rates.compute(monthly(6, i -> 100 + i)).orElseThrow();
+        var sixMonths = Rates.compute(monthly(7, i -> 100 + i)).orElseThrow();
         assertThat(sixMonths.annualizedPct()).isNull();
+        var oneYear = Rates.compute(monthly(13, i -> 100 + i)).orElseThrow(); // 12 meses de cambio
+        assertThat(oneYear.annualizedPct()).isNotNull();
     }
 
     @Test
@@ -70,10 +72,11 @@ class RatesTest {
     void rangeApplyKeepsLatestAndTrimsWindow() {
         var s = annual(30, i -> i);
         var y5 = Range.Y5.apply(s);
-        assertThat(y5.points()).hasSize(5);
+        assertThat(y5.points()).hasSize(6); // 5 años de cambio = 6 puntos anuales
         assertThat(y5.latest().orElseThrow().value()).isEqualTo(29.0);
         assertThat(Range.ALL.apply(s).points()).hasSize(30);
-        assertThat(Range.M6.apply(monthly(24, i -> i)).points()).hasSize(6);
+        assertThat(Range.M6.apply(monthly(24, i -> i)).points()).hasSize(7); // 6 meses de cambio = 7 puntos
+        assertThat(Range.Y1.apply(monthly(24, i -> i)).points()).hasSize(13);
     }
 
     @Test

@@ -107,6 +107,7 @@ export interface Breakdown {
   dim: string
   range: string
   from: string
+  to: string
   total: number
   items: BreakdownItem[]
   source: string
