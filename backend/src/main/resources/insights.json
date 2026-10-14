@@ -1,0 +1,80 @@
+[
+  {
+    "theme": "economia", "kind": "relation", "x": "pib-crecimiento", "y": "desempleo",
+    "title": "Crecimiento y desempleo",
+    "literature": "Ley de Okun (Okun, 1962): periodos de mayor crecimiento del producto se asocian con menor desempleo.",
+    "proposal": "Sostener el crecimiento con sectores intensivos en empleo (construcción, agroindustria, servicios) y estabilidad macroeconómica; la asociación estimada indica cuánto desempleo podría moverse con cada punto de crecimiento."
+  },
+  {
+    "theme": "economia", "kind": "relation", "x": "desempleo", "y": "inflacion",
+    "title": "Desempleo e inflación",
+    "literature": "Curva de Phillips (Phillips, 1958; Friedman, 1968): relación de corto plazo entre holgura laboral e inflación, sujeta a expectativas.",
+    "proposal": "Coordinar política monetaria y laboral: anclar expectativas de inflación y evitar reducir el desempleo con choques de demanda que alimenten precios."
+  },
+  {
+    "theme": "economia", "kind": "trend", "x": "inflacion", "y": null,
+    "title": "Trayectoria de la inflación",
+    "literature": "Metas de inflación (Bernanke y Mishkin, 1997): credibilidad del banco central ancla expectativas.",
+    "proposal": "Mantener la credibilidad de la meta de inflación y proteger el poder adquisitivo de los hogares de menores ingresos con subsidios focalizados, no con controles de precios."
+  },
+  {
+    "theme": "empleo", "kind": "trend", "x": "desempleo", "y": null,
+    "title": "Trayectoria del desempleo",
+    "literature": "Mercados laborales con fricciones (Mortensen y Pissarides, 1994).",
+    "proposal": "Reducir fricciones de búsqueda y emparejamiento: servicios públicos de empleo, formación ligada a vacantes reales y menores costos no salariales a la contratación formal."
+  },
+  {
+    "theme": "empleo", "kind": "relation", "x": "empleo-vulnerable", "y": "pobreza",
+    "title": "Empleo vulnerable y pobreza",
+    "literature": "Informalidad y pobreza (Perry et al., 2007, Banco Mundial): el empleo sin protección se asocia con ingresos bajos e inestables.",
+    "proposal": "Formalizar progresivamente: simplificar el régimen para microempresas, seguridad social flexible por aportes parciales y protección para trabajadores por cuenta propia."
+  },
+  {
+    "theme": "pobreza", "kind": "relation", "x": "pib-crecimiento", "y": "pobreza",
+    "title": "Crecimiento y pobreza",
+    "literature": "Crecimiento pro-pobre (Ravallion y Chen, 1997; Dollar y Kraay, 2002): el crecimiento reduce la pobreza, con elasticidad menor cuando la desigualdad es alta.",
+    "proposal": "Combinar crecimiento con transferencias focalizadas y acceso a crédito y tierra: la elasticidad crecimiento-pobreza es mayor donde la desigualdad inicial es menor."
+  },
+  {
+    "theme": "pobreza", "kind": "trend", "x": "gini", "y": null,
+    "title": "Trayectoria de la desigualdad (Gini)",
+    "literature": "Kuznets (1955) y Piketty (2014): la desigualdad persiste sin políticas redistributivas y de capital humano.",
+    "proposal": "Fortalecer la progresividad tributaria y la inversión en primera infancia y educación; son las palancas con evidencia más robusta para bajar el Gini de forma duradera."
+  },
+  {
+    "theme": "seguridad", "kind": "trend", "x": "homicidios-tasa", "y": null,
+    "title": "Tasa de homicidios",
+    "literature": "Economía del crimen (Becker, 1968; Ehrlich, 1973): la probabilidad de captura y condena disuade más que la severidad.",
+    "proposal": "Priorizar la eficacia de la investigación y la presencia estatal en los territorios críticos sobre el endurecimiento de penas; focalizar en puntos calientes."
+  },
+  {
+    "theme": "seguridad", "kind": "trend", "x": "homicidios-mensual", "y": null,
+    "title": "Homicidios por mes (Policía)",
+    "literature": "Policía focalizada en puntos calientes (Sherman y Weisburd, 1995).",
+    "proposal": "Usar la serie mensual para evaluar intervenciones: medir antes y después en las zonas intervenidas, con grupo de comparación."
+  },
+  {
+    "theme": "salud-educacion", "kind": "relation", "x": "gasto-salud", "y": "mortalidad-infantil",
+    "title": "Gasto en salud y mortalidad infantil",
+    "literature": "Gasto público en salud y resultados (Filmer y Pritchett, 1999): el efecto del gasto sobre la mortalidad es modesto y depende de cómo se focaliza.",
+    "proposal": "Dirigir el gasto a atención primaria, vacunación y nutrición materno-infantil, donde el efecto marginal sobre la mortalidad infantil es mayor."
+  },
+  {
+    "theme": "salud-educacion", "kind": "trend", "x": "mortalidad-infantil", "y": null,
+    "title": "Trayectoria de la mortalidad infantil",
+    "literature": "Determinantes sociales de la salud (Marmot, 2005).",
+    "proposal": "Cerrar brechas territoriales con agua potable, atención prenatal y acceso a servicios en zonas rurales dispersas."
+  },
+  {
+    "theme": "ambiente-energia", "kind": "trend", "x": "bosque", "y": null,
+    "title": "Cobertura de bosque",
+    "literature": "Pagos por servicios ambientales (Wunder, 2005) y gobernanza territorial.",
+    "proposal": "Combinar pagos por servicios ambientales, titulación de tierras y control efectivo de la deforestación en frentes de colonización."
+  },
+  {
+    "theme": "ambiente-energia", "kind": "trend", "x": "electricidad-pc", "y": null,
+    "title": "Consumo eléctrico per cápita",
+    "literature": "Energía y desarrollo (Stern, 2011): el consumo energético acompaña el crecimiento; la intensidad y la matriz definen el costo ambiental.",
+    "proposal": "Ampliar cobertura y eficiencia energética, e impulsar fuentes renovables no convencionales para atender la demanda sin elevar emisiones."
+  }
+]
