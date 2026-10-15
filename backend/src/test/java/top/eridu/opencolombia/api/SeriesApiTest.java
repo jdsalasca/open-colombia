@@ -96,8 +96,8 @@ class SeriesApiTest {
     void responseCarriesFreshnessComputedFromTheLastDataDate() throws Exception {
         mvc.perform(get("/api/series/trm?range=6m")).andExpect(status().isOk())
                 .andExpect(jsonPath("$.series.freshness.lastDataDate").value("2026-06-01"))
-                .andExpect(jsonPath("$.series.freshness.stale").value(true)) // mensual vence a los 75 días
-                .andExpect(jsonPath("$.series.freshness.staleAfterDays").value(75));
+                .andExpect(jsonPath("$.series.freshness.stale").value(true))
+                .andExpect(jsonPath("$.series.freshness.staleAfterDays").value(100)); // mensual: 100 días
     }
 
     @Test

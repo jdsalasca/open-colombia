@@ -28,8 +28,21 @@ class SourceCatalogTest {
             assertThat(s.params()).containsEntry("dropCurrentPeriod", "true");
             assertThat(s.params()).containsEntry("dropLastPeriods", "1"); // el último mes llega incompleto
             assertThat(s.method()).contains("consolida");
+            // sin el último mes y con la publicación de la Policía, el dato llega a tener ~110 días: vence a los 130
+            assertThat(s.staleAfterDays()).isEqualTo(130);
             assertThat(s.method()).isNotBlank();
         }
+    }
+
+    @Test
+    void defaultExpiryReflectsTheRealPublicationLagOfEachPeriodicity() {
+        var wb = specs.stream().filter(x -> x.id().equals("mortalidad-infantil")).findFirst().orElseThrow();
+        // un dato anual de 2024 (1 de enero de 2024) sigue siendo el más reciente posible hasta ~3 años después
+        assertThat(wb.staleAfterDays()).isEqualTo(1100);
+        var trm = specs.stream().filter(x -> x.id().equals("trm")).findFirst().orElseThrow();
+        assertThat(trm.staleAfterDays()).isEqualTo(100);
+        var xm = specs.stream().filter(x -> x.id().equals("energia-precio-bolsa")).findFirst().orElseThrow();
+        assertThat(xm.staleAfterDays()).isEqualTo(7);
     }
 
     @Test

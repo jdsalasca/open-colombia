@@ -46,12 +46,15 @@ public record IndicatorSpec(String id, Theme theme, String name, String unit, St
         return "diaria".equals(periodicity) || "mensual".equals(periodicity) ? RefreshClass.DAILY : RefreshClass.SLOW;
     }
 
-    /** Anual vence a los 800 días, mensual a los 75, diaria a los 7. */
+    /**
+     * Vencimiento según el rezago real de publicación. Anual: un dato fechado el 1 de enero del año Y sigue
+     * siendo el más reciente posible hasta ~3 años después (1.100 días); mensual: 100 días; diaria: 7.
+     */
     static int defaultStaleAfterDays(String periodicity) {
         return switch (periodicity == null ? "" : periodicity) {
             case "diaria" -> 7;
-            case "mensual" -> 75;
-            default -> 800;
+            case "mensual" -> 100;
+            default -> 1100;
         };
     }
 

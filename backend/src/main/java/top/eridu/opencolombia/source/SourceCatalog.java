@@ -23,6 +23,7 @@ public final class SourceCatalog {
 
     /** Serie mensual de la Policía Nacional: suma de {@code cantidad} por mes del hecho, desde 2016. */
     private static IndicatorSpec police(String id, String name, String dataset, String description) {
+        // el dato más reciente (sin el último mes, que llega incompleto) tiene ~110 días: vence a los 130
         return new IndicatorSpec(id, Theme.SEGURIDAD, name, "casos/mes", "mensual", SODA, dataset, Map.of(
                 "$select", "date_trunc_ym(fecha_hecho) as mes, sum(cantidad) as v",
                 "$where", "fecha_hecho >= '2016-01-01'",
@@ -33,7 +34,7 @@ public final class SourceCatalog {
                         + "el último mes publicado, porque la Policía lo consolida con rezago (en agosto 2026 aparecía con 17 a 48 % "
                         + "menos casos que julio, lo que parecería una caída real). Son denuncias registradas: no incluyen delitos "
                         + "no denunciados.",
-                false);
+                false, IndicatorSpec.RefreshClass.DAILY, 130);
     }
 
     private static final String XM_METHOD =
