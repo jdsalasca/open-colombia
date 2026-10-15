@@ -29,7 +29,7 @@ export function Breakdowns() {
   }, [dim, range])
 
   return (
-    <PaperSheet as="section" color="kraft" className="chart-sheet">
+    <PaperSheet as="section" className="chart-sheet">
       <h3 style={{ marginTop: 0 }}>Homicidios: ¿quiénes y dónde?</h3>
       <RangeSelector ranges={DIMS} value={dim} onChange={setDim} />
       <RangeSelector ranges={RANGES} value={range} onChange={setRange} />

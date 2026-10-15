@@ -2,7 +2,7 @@ import { DataTable } from '../components/DataTable'
 import { fmt } from '../format'
 import type { BreakdownItem } from '../types'
 
-const COLORS = ['#c9342b', '#fcd116', '#1f4e9c', '#3f7d5c', '#d9653b', '#8a6bbe', '#6b5a48']
+const COLORS = [1, 2, 3, 4, 5, 6, 7].map((n) => `var(--cat-${n})`)
 
 interface Props {
   items: BreakdownItem[]

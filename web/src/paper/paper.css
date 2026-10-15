@@ -4,10 +4,21 @@
   --ink: #2b2118;
   --ink-soft: #6b5a48;
   --yellow: #fcd116;
-  --blue: #1f4e9c;
-  --red: #c9342b;
-  --green: #3f7d5c;
+  --blue: #0b4f8a;
+  --red: #b3261e;
+  --green: #1b6b3a;
   --board: #e9dcc3;
+  /* paleta categórica y semántica: contraste >= 4,5:1 sobre --paper (ver palette.ts y palette.test.ts) */
+  --cat-1: #0b4f8a;
+  --cat-2: #a84300;
+  --cat-3: #006b4f;
+  --cat-4: #9c3b78;
+  --cat-5: #7a5c00;
+  --cat-6: #00667a;
+  --cat-7: #59514a;
+  --good: #1b6b3a;
+  --bad: #b3261e;
+  --neutral: #0b4f8a;
   --shadow: rgba(60, 40, 20, 0.28);
   font-family: 'Trebuchet MS', 'Segoe UI', system-ui, sans-serif;
   color: var(--ink);
@@ -70,7 +81,7 @@ a { color: inherit; }
 .axis { stroke: var(--ink-soft); stroke-width: 1; stroke-dasharray: 3 4; }
 .tick { font-size: 11px; fill: var(--ink-soft); }
 .line { fill: none; stroke: var(--ink); stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; }
-.dot { fill: var(--red); }
+.dot { fill: var(--ink-soft); }
 .gauge { width: 100%; max-width: 220px; }
 .gauge-bg { fill: none; stroke: rgba(0, 0, 0, 0.15); stroke-width: 16; stroke-linecap: round; }
 .gauge-fg { fill: none; stroke: var(--red); stroke-width: 16; stroke-linecap: round; }
@@ -87,9 +98,9 @@ a { color: inherit; }
 
 .btn {
   font: inherit; font-weight: 800; cursor: pointer; padding: 10px 18px; color: #fff; background: var(--blue);
-  border: 0; border-radius: 4px; box-shadow: 0 4px 0 #14336a;
+  border: 0; border-radius: 4px; box-shadow: 0 4px 0 #072f55;
 }
-.btn:active { transform: translateY(2px); box-shadow: 0 2px 0 #14336a; }
+.btn:active { transform: translateY(2px); box-shadow: 0 2px 0 #072f55; }
 .btn:disabled { opacity: 0.65; cursor: progress; }
 .status { margin: 8px 0 0; font-size: 0.9rem; }
 
@@ -122,8 +133,8 @@ a { color: inherit; }
 
 /* v2: gráficos */
 .line + .trend, .trend { stroke: var(--blue); stroke-width: 2; stroke-dasharray: 7 6; }
-.dot-min { fill: var(--green); stroke: #fff; stroke-width: 2; }
-.dot-max { fill: var(--red); stroke: #fff; stroke-width: 2; }
+.dot-min { fill: var(--neutral); stroke: var(--paper); stroke-width: 2; }
+.dot-max { fill: var(--neutral); stroke: var(--paper); stroke-width: 2; }
 .linechart-fig, .pie, .hbars, .yoy { margin: 0; }
 .pie { display: grid; grid-template-columns: minmax(150px, 220px) 1fr; gap: 14px 20px; align-items: center; }
 .pie svg { width: 100%; height: auto; }
@@ -133,7 +144,7 @@ a { color: inherit; }
 .hbars ul { list-style: none; margin: 0; padding: 0; }
 .hbars li { display: grid; grid-template-columns: minmax(90px, 160px) 1fr minmax(90px, auto); gap: 8px; align-items: center; margin: 5px 0; font-size: 0.85rem; }
 .hbar-track { background: rgba(0, 0, 0, 0.1); height: 14px; border-radius: 2px; }
-.hbar-fill { display: block; height: 100%; background: var(--red); border-radius: 2px; }
+.hbar-fill { display: block; height: 100%; background: var(--cat-1); border-radius: 2px; }
 .bar-good { fill: var(--green); }
 .bar-bad { fill: var(--red); }
 .bar-neutral { fill: var(--blue); }
