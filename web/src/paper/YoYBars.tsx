@@ -54,7 +54,11 @@ export function YoYBars({ points, higherIsBetter, unit = '', maxBars = 20 }: Pro
           const h = (Math.abs(b.pct) / maxAbs) * (mid - padY)
           const x = padX + i * slot + (slot - barW) / 2
           const y = b.pct >= 0 ? mid - h : mid
-          return <rect key={b.year} className={`bar ${cls(b.pct)}`} x={x} y={y} width={barW} height={Math.max(1, h)} />
+          const kind = cls(b.pct)
+          return (
+            <rect key={b.year} className={`bar ${kind}`} fill={`url(#pat-${kind.replace('bar-', '')})`}
+                  x={x} y={y} width={barW} height={Math.max(1, h)} />
+          )
         })}
         <text x={padX} y={height - 6} className="tick">{shown[0].year}</text>
         <text x={width - padX} y={height - 6} textAnchor="end" className="tick">{shown[shown.length - 1].year}</text>

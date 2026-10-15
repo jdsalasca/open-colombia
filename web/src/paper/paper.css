@@ -145,9 +145,6 @@ a { color: inherit; }
 .hbars li { display: grid; grid-template-columns: minmax(90px, 160px) 1fr minmax(90px, auto); gap: 8px; align-items: center; margin: 5px 0; font-size: 0.85rem; }
 .hbar-track { background: rgba(0, 0, 0, 0.1); height: 14px; border-radius: 2px; }
 .hbar-fill { display: block; height: 100%; background: var(--cat-1); border-radius: 2px; }
-.bar-good { fill: var(--green); }
-.bar-bad { fill: var(--red); }
-.bar-neutral { fill: var(--blue); }
 .yoy svg { width: 100%; height: auto; }
 .datatable { margin-top: 8px; font-size: 0.85rem; }
 .datatable summary { cursor: pointer; font-weight: 700; }
@@ -158,3 +155,20 @@ a { color: inherit; }
   .pie { grid-template-columns: 1fr; }
   .hbars li { grid-template-columns: 1fr; gap: 2px; }
 }
+
+/* v3: leyendas tipo etiqueta y texturas CSS para barras HTML */
+.legend-tags { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 8px; }
+.legend-tags li {
+  display: inline-flex; align-items: center; gap: 8px; padding: 5px 14px 5px 8px; font-size: 0.85rem;
+  background: #fffaf0; color: var(--ink); border: 1px solid rgba(43, 33, 24, 0.35);
+  clip-path: polygon(0 0, calc(100% - 9px) 0, 100% 50%, calc(100% - 9px) 100%, 0 100%);
+}
+.legend-tags .tag-label { font-weight: 700; }
+.legend-tags .tag-value { color: var(--ink-soft); }
+.hpat-0 { background-color: var(--cat-1); }
+.hpat-1 { background-color: var(--cat-2); background-image: repeating-linear-gradient(45deg, rgba(247, 240, 225, 0.7) 0 2px, transparent 2px 7px); }
+.hpat-2 { background-color: var(--cat-3); background-image: radial-gradient(rgba(247, 240, 225, 0.8) 1.4px, transparent 1.6px); background-size: 7px 7px; }
+.hpat-3 { background-color: var(--cat-4); background-image: linear-gradient(rgba(247, 240, 225, 0.7) 1px, transparent 1px), linear-gradient(90deg, rgba(247, 240, 225, 0.7) 1px, transparent 1px); background-size: 7px 7px; }
+.hpat-4 { background-color: var(--cat-5); background-image: repeating-linear-gradient(-45deg, rgba(247, 240, 225, 0.7) 0 2px, transparent 2px 7px); }
+.hpat-5 { background-color: var(--cat-6); background-image: repeating-linear-gradient(45deg, rgba(247, 240, 225, 0.7) 0 2px, transparent 2px 7px), repeating-linear-gradient(-45deg, rgba(247, 240, 225, 0.7) 0 2px, transparent 2px 7px); }
+.hpat-6 { background-color: var(--cat-7); background-image: repeating-linear-gradient(0deg, rgba(247, 240, 225, 0.7) 0 2px, transparent 2px 6px); }

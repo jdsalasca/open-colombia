@@ -20,11 +20,11 @@ export function HBarChart({ items, caption = 'Composición' }: Props) {
   return (
     <figure className="hbars">
       <ul>
-        {sorted.map((i) => (
+        {sorted.map((i, idx) => (
           <li key={i.label}>
             <span className="hbar-label">{i.label}</span>
             <span className="hbar-track">
-              <span className="hbar-fill" style={{ width: `${Math.max(2, (i.value / max) * 100)}%` }} />
+              <span className={`hbar-fill hpat-${idx % 7}`} style={{ width: `${Math.max(2, (i.value / max) * 100)}%` }} />
             </span>
             <span className="hbar-value">{fmt(i.value)} ({fmt(i.share * 100)} %)</span>
           </li>

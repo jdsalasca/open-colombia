@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react'
 import { BrowserRouter, NavLink, Route, Routes } from 'react-router-dom'
 import { getIndicators, getInsights } from './api'
 import { RefreshButton } from './components/RefreshButton'
+import { ChartDefs } from './paper/ChartDefs'
 import { PaperSheet } from './paper/PaperSheet'
 import { Home } from './pages/Home'
 import { Methodology } from './pages/Methodology'
@@ -34,6 +35,7 @@ export default function App() {
 
   return (
     <BrowserRouter>
+      <ChartDefs />
       <div className="page">
         <header>
           <div className="masthead">
