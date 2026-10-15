@@ -16,6 +16,11 @@ public class RateLimiter {
         this.clock = clock;
     }
 
+    /** Libera el límite: un intento que no actualizó nada no debe bloquear a los demás. */
+    public synchronized void release() {
+        last = Instant.MIN;
+    }
+
     /** @return 0 si la acción se permite (y queda registrada); si no, segundos hasta poder reintentar. */
     public synchronized long tryAcquire() {
         Instant now = clock.instant();

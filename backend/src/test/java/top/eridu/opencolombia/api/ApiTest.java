@@ -33,7 +33,14 @@ class ApiTest {
     }
 
     @Autowired MockMvc mvc;
+    @Autowired RateLimiter limiter;
     @MockitoBean RefreshService refreshService;
+    @MockitoBean top.eridu.opencolombia.live.LiveService liveService;
+
+    @org.junit.jupiter.api.BeforeEach
+    void resetLimiter() {
+        limiter.release(); // el límite es un singleton del contexto: cada prueba parte limpia
+    }
 
     @Test
     void indicatorsWithEmptyStoreIs200WithThemesAndNoSeries() throws Exception {
@@ -66,8 +73,33 @@ class ApiTest {
     }
 
     @Test
+    void aFullyFailedRefreshReleasesTheLimitSoTheUserCanRetryAtOnce() throws Exception {
+        Mockito.when(liveService.refresh()).thenReturn(new top.eridu.opencolombia.live.LiveSnapshot(null, List.of(), null,
+                java.util.Map.of("banrep", "La fuente no respondió.", "usgs", "La fuente no respondió.")));
+        Mockito.when(refreshService.refreshAll()).thenReturn(new RefreshReport(Instant.now(),
+                List.of(new top.eridu.opencolombia.refresh.SourceResult("a", false, "La fuente no respondió."))));
+        mvc.perform(post("/api/refresh")).andExpect(status().isOk());
+        mvc.perform(post("/api/refresh")).andExpect(status().isOk()); // no 429: nada se actualizó
+    }
+
+    @Test
+    void refreshReportAlsoCoversTheLiveSources() throws Exception {
+        Mockito.when(liveService.refresh()).thenReturn(new top.eridu.opencolombia.live.LiveSnapshot(null, List.of(),
+                Instant.now(), java.util.Map.of("usgs", "La fuente no respondió.")));
+        Mockito.when(refreshService.refreshAll()).thenReturn(new RefreshReport(Instant.now(),
+                List.of(new top.eridu.opencolombia.refresh.SourceResult("a", true, null))));
+        mvc.perform(post("/api/refresh")).andExpect(status().isOk())
+                .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers
+                        .jsonPath("$.results[?(@.id=='sismos')].ok").value(false))
+                .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers
+                        .jsonPath("$.results[?(@.id=='usd-cop-intradia')].ok").value(true));
+    }
+
+    @Test
     void secondRefreshWithinAMinuteIs429() throws Exception {
-        Mockito.when(refreshService.refreshAll()).thenReturn(new RefreshReport(Instant.now(), List.of()));
+        Mockito.when(liveService.refresh()).thenReturn(top.eridu.opencolombia.live.LiveSnapshot.empty());
+        Mockito.when(refreshService.refreshAll()).thenReturn(new RefreshReport(Instant.now(),
+                List.of(new top.eridu.opencolombia.refresh.SourceResult("a", true, null))));
         mvc.perform(post("/api/refresh")).andExpect(status().isOk());
         mvc.perform(post("/api/refresh")).andExpect(status().isTooManyRequests())
                 .andExpect(header().exists("Retry-After"));
