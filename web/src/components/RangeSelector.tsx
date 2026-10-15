@@ -2,14 +2,16 @@ interface Props {
   ranges: string[]
   value: string
   onChange: (range: string) => void
+  /** Nombre accesible del grupo: «Rango de tiempo», «Dimensión», etc. */
+  label?: string
 }
 
 const LABEL: Record<string, string> = { todo: 'todo' }
 
 /** Chips de rango. Solo muestra los que la serie admite. */
-export function RangeSelector({ ranges, value, onChange }: Props) {
+export function RangeSelector({ ranges, value, onChange, label = 'Rango de tiempo' }: Props) {
   return (
-    <div className="ranges" role="group" aria-label="Rango de tiempo">
+    <div className="ranges" role="group" aria-label={label}>
       {ranges.map((r) => (
         <button
           key={r}

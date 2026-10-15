@@ -31,8 +31,8 @@ export function Breakdowns() {
   return (
     <PaperSheet as="section" className="chart-sheet">
       <h3 style={{ marginTop: 0 }}>Homicidios: ¿quiénes y dónde?</h3>
-      <RangeSelector ranges={DIMS} value={dim} onChange={setDim} />
-      <RangeSelector ranges={RANGES} value={range} onChange={setRange} />
+      <RangeSelector ranges={DIMS} value={dim} onChange={setDim} label="Dimensión" />
+      <RangeSelector ranges={RANGES} value={range} onChange={setRange} label="Periodo" />
       {error && <p className="card-empty">No pudimos cargar la composición ahora. Intenta de nuevo más tarde.</p>}
       {!error && !data && <p>Cargando…</p>}
       {data && (

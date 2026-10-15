@@ -9,7 +9,10 @@ const GLOSSARY: Array<[string, string]> = [
   ['Anualizada', 'Tasa que, sostenida un año, llevaría del valor inicial al final: ((final/inicial)^(365,25/días) − 1) × 100. Solo si la ventana abarca cerca de un año o más y el valor inicial es positivo.'],
   ['Promedio y volatilidad', 'Media aritmética y desviación estándar muestral de los datos de la ventana.'],
   ['Tendencia y R²', 'Recta de mínimos cuadrados (MCO) del valor contra el tiempo; R² dice qué parte de la variación explica la recta. Con menos de 5 datos no se estima.'],
-  ['Variación interanual', 'Cambio porcentual de un año contra el anterior.'],
+  ['Variación interanual', 'Cambio de un año contra el anterior (solo años consecutivos). En series que ya son porcentajes se expresa en puntos porcentuales (pp).'],
+  ['Intervalo de predicción', 'Rango (95 %) en el que, bajo el modelo lineal, caería el próximo dato. En series autocorrelacionadas suele ser más estrecho de lo que debería: úsalo como orden de magnitud.'],
+  ['Correlación de variaciones', 'Correlación entre los cambios anuales de dos series. Distingue co-movimiento real de dos series que solo comparten tendencia (relación espuria).'],
+  ['Series que ya son porcentajes', 'La anualizada y el cambio relativo no se muestran para series que ya son porcentajes (inflación, desempleo, PIB): el cambio se da en puntos porcentuales.'],
 ]
 
 export function MethodologyIndex() {

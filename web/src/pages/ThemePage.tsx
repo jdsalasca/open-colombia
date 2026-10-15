@@ -21,6 +21,7 @@ function SeriesBlock({ series }: { series: Series }) {
   useEffect(() => {
     let live = true
     setError(false)
+    setRes(null) // no mostrar datos ni tasas del rango anterior mientras carga el nuevo
     getSeries(series.id, range)
       .then((r) => live && setRes(r))
       .catch(() => live && setError(true))
@@ -29,7 +30,6 @@ function SeriesBlock({ series }: { series: Series }) {
     }
   }, [series.id, range])
 
-  const points = res?.series.points ?? series.points
   return (
     <PaperSheet as="section" className="chart-sheet">
       <h3 style={{ marginTop: 0 }}>
@@ -38,13 +38,15 @@ function SeriesBlock({ series }: { series: Series }) {
       <RangeSelector ranges={rangesFor(series.periodicity)} value={range} onChange={setRange} />
       {error ? (
         <p className="card-empty">No pudimos cargar este rango. Prueba otro.</p>
+      ) : !res ? (
+        <p className="card-empty" role="status">Cargando…</p>
       ) : (
         <>
-          <LineChart points={points} unit={series.unit} trend={ols(points)} />
+          <LineChart points={res.series.points} unit={series.unit} trend={ols(res.series.points)} />
           {series.periodicity === 'anual' && (
-            <YoYBars points={points} higherIsBetter={res?.higherIsBetter ?? null} unit={series.unit} />
+            <YoYBars points={res.series.points} higherIsBetter={res.higherIsBetter} unit={series.unit} />
           )}
-          <RatesPanel rates={res?.rates ?? null} unit={series.unit} periodicity={series.periodicity} />
+          <RatesPanel rates={res.rates} unit={series.unit} periodicity={series.periodicity} />
         </>
       )}
       <p className="chip">
