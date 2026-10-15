@@ -75,11 +75,13 @@ export function ThemePage({ data, insights }: { data: IndicatorsResponse; insigh
           <PaperCard key={s.id} series={s} />
         ))}
       </div>
-      {theme.series
-        .filter((s) => s.points.length >= 2)
-        .map((s) => (
-          <SeriesBlock key={s.id} series={s} />
-        ))}
+      <div className="chart-grid">
+        {theme.series
+          .filter((s) => s.points.length >= 2)
+          .map((s) => (
+            <SeriesBlock key={s.id} series={s} />
+          ))}
+      </div>
       {theme.id === 'seguridad' && <Breakdowns />}
       {mine.length > 0 && (
         <>

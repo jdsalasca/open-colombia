@@ -137,7 +137,7 @@ a { color: inherit; }
 .dot-max { fill: var(--neutral); stroke: var(--paper); stroke-width: 2; }
 .linechart-fig, .pie, .hbars, .yoy { margin: 0; }
 .pie { display: grid; grid-template-columns: minmax(150px, 220px) 1fr; gap: 14px 20px; align-items: center; }
-.pie svg { width: 100%; height: auto; }
+.pie > svg { width: 100%; height: auto; }
 .pie .datatable { grid-column: 1 / -1; }
 .legend { list-style: none; margin: 0; padding: 0; font-size: 0.9rem; line-height: 1.7; }
 .swatch { display: inline-block; width: 12px; height: 12px; margin-right: 8px; border-radius: 2px; }
@@ -158,6 +158,7 @@ a { color: inherit; }
 
 /* v3: leyendas tipo etiqueta y texturas CSS para barras HTML */
 .legend-tags { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 8px; }
+.legend-tags svg { flex: none; width: 16px; height: 16px; }
 .legend-tags li {
   display: inline-flex; align-items: center; gap: 8px; padding: 5px 14px 5px 8px; font-size: 0.85rem;
   background: #fffaf0; color: var(--ink); border: 1px solid rgba(43, 33, 24, 0.35);
@@ -172,3 +173,13 @@ a { color: inherit; }
 .hpat-4 { background-color: var(--cat-5); background-image: repeating-linear-gradient(-45deg, rgba(247, 240, 225, 0.7) 0 2px, transparent 2px 7px); }
 .hpat-5 { background-color: var(--cat-6); background-image: repeating-linear-gradient(45deg, rgba(247, 240, 225, 0.7) 0 2px, transparent 2px 7px), repeating-linear-gradient(-45deg, rgba(247, 240, 225, 0.7) 0 2px, transparent 2px 7px); }
 .hpat-6 { background-color: var(--cat-7); background-image: repeating-linear-gradient(0deg, rgba(247, 240, 225, 0.7) 0 2px, transparent 2px 6px); }
+
+/* v3: gráficas compactas en cuadrícula */
+.chart-grid { display: grid; gap: 22px; grid-template-columns: 1fr; margin: 20px 0; }
+@media (min-width: 900px) { .chart-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.chart-grid .chart-sheet { min-width: 0; }
+.linechart { max-height: 190px; }
+.pie > svg { max-width: 150px; }
+.mark { fill: var(--neutral); stroke: var(--paper); stroke-width: 1.5; }
+.mark-text { font-size: 11px; font-weight: 700; fill: var(--ink); }
+.trend { stroke: var(--cat-2); stroke-width: 2; stroke-dasharray: 7 6; }
