@@ -70,7 +70,7 @@ export default function App() {
           {data && (
             <Routes>
               <Route path="/" element={<Home data={data} live={live} />} />
-              <Route path="/tema/:id" element={<ThemePage data={data} insights={insights} />} />
+              <Route path="/tema/:id" element={<ThemePage data={data} insights={insights} live={live} />} />
               <Route path="/propuestas" element={<Proposals insights={insights} />} />
               <Route path="/metodologia" element={<MethodologyIndex />} />
               <Route path="/metodologia/:id" element={<Methodology />} />

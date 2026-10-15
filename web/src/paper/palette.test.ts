@@ -37,6 +37,13 @@ describe('palette meets WCAG AA on paper', () => {
     expect(contrast(PALETTE.inkSoft, PALETTE.board)).toBeGreaterThanOrEqual(4.5)
   })
 
+  it('the sequential heat scale keeps every step at 3:1 or more on paper and gets darker', () => {
+    PALETTE.heat.forEach((c, i) => {
+      expect(contrast(c, PALETTE.paper), c).toBeGreaterThanOrEqual(3)
+      if (i > 0) expect(contrast(c, PALETTE.paper)).toBeGreaterThan(contrast(PALETTE.heat[i - 1], PALETTE.paper))
+    })
+  })
+
   it('flag yellow is only a background: fails as a chart color, passes with ink text', () => {
     expect(contrast(PALETTE.yellow, PALETTE.paper)).toBeLessThan(3)
     expect(contrast(PALETTE.ink, PALETTE.yellow)).toBeGreaterThanOrEqual(4.5)
@@ -55,6 +62,7 @@ describe('paper.css tokens', () => {
 
   it('declares every palette token with the exact palette value', () => {
     PALETTE.categorical.forEach((c, i) => expect(token(`cat-${i + 1}`), `--cat-${i + 1}`).toBe(c))
+    PALETTE.heat.forEach((c, i) => expect(token(`heat-${i + 1}`), `--heat-${i + 1}`).toBe(c))
     expect(token('good')).toBe(PALETTE.good)
     expect(token('bad')).toBe(PALETTE.bad)
     expect(token('neutral')).toBe(PALETTE.neutral)

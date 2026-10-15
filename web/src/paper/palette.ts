@@ -11,6 +11,8 @@ export const PALETTE = {
   inkSoft: '#6b5a48',
   yellow: '#fcd116',
   categorical: ['#0b4f8a', '#a84300', '#006b4f', '#9c3b78', '#7a5c00', '#00667a', '#59514a'],
+  /** Escala secuencial de un solo matiz (de menor a mayor); cada paso >= 3:1 sobre `paper`. */
+  heat: ['#4f86bd', '#2f6aa6', '#18538f', '#0b3d6e'],
   good: '#1b6b3a',
   bad: '#b3261e',
   neutral: '#0b4f8a',

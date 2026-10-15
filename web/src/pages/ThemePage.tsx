@@ -7,9 +7,13 @@ import { ols } from '../format'
 import { LineChart } from '../paper/LineChart'
 import { YoYBars } from '../paper/YoYBars'
 import { Breakdowns } from './Breakdowns'
+import { Panorama } from './Panorama'
+import { HeatStrip } from '../paper/HeatStrip'
+import { Histogram } from '../paper/Histogram'
+import { QuakeScatter } from '../paper/QuakeScatter'
 import { PaperCard } from '../paper/PaperCard'
 import { PaperSheet } from '../paper/PaperSheet'
-import type { IndicatorsResponse, Insight, Series, SeriesResponse } from '../types'
+import type { IndicatorsResponse, Insight, LiveSnapshot, Series, SeriesResponse } from '../types'
 import { InsightBlock } from './Proposals'
 
 /** Gráfica de una serie con selector de rango y tasas; consulta /api/series al cambiar el rango. */
@@ -56,7 +60,7 @@ function SeriesBlock({ series }: { series: Series }) {
   )
 }
 
-export function ThemePage({ data, insights }: { data: IndicatorsResponse; insights: Insight[] }) {
+export function ThemePage({ data, insights, live = null }: { data: IndicatorsResponse; insights: Insight[]; live?: LiveSnapshot | null }) {
   const { id } = useParams()
   const theme = data.themes.find((t) => t.id === id)
   if (!theme) {
@@ -82,6 +86,8 @@ export function ThemePage({ data, insights }: { data: IndicatorsResponse; insigh
             <SeriesBlock key={s.id} series={s} />
           ))}
       </div>
+      {theme.id === 'ambiente-energia' && <Climate series={theme.series} live={live} />}
+      {theme.id === 'seguridad' && <Panorama data={data} />}
       {theme.id === 'seguridad' && <Breakdowns />}
       {mine.length > 0 && (
         <>
@@ -91,6 +97,34 @@ export function ThemePage({ data, insights }: { data: IndicatorsResponse; insigh
           ))}
         </>
       )}
+    </>
+  )
+}
+
+/** Clima diario (tira de calor) y sismos recientes (histograma + dispersión), solo con lo que haya cargado. */
+function Climate({ series, live }: { series: Series[]; live: LiveSnapshot | null }) {
+  const daily = series.filter((s) => s.periodicity === 'diaria' && (s.id.startsWith('temperatura') || s.id.startsWith('precipitacion')))
+  const quakes = live?.quakes ?? []
+  return (
+    <>
+      {daily.map((s) => (
+        <PaperSheet key={s.id} as="section" className="chart-sheet">
+          <h3 style={{ marginTop: 0 }}>{s.name}: últimos 90 días</h3>
+          <HeatStrip points={s.points} unit={s.unit} days={90} label={s.name} />
+        </PaperSheet>
+      ))}
+      <PaperSheet as="section" className="chart-sheet">
+        <h3 style={{ marginTop: 0 }}>Sismos en Colombia (M ≥ 2,5, últimos 30 días)</h3>
+        {live === null ? (
+          <p className="card-empty">sin datos de sismos por ahora</p>
+        ) : (
+          <>
+            <Histogram values={quakes.map((q) => q.mag)} binWidth={0.5} unit="M" caption="Sismos por magnitud" />
+            <QuakeScatter quakes={quakes} />
+          </>
+        )}
+        <p className="chip">Fuente: USGS (catálogo sísmico). «En vivo» se actualiza cada 15 minutos.</p>
+      </PaperSheet>
     </>
   )
 }
