@@ -64,3 +64,23 @@ export function ols(points: Point[]): Ols | null {
   const r2 = sxx === 0 || syy === 0 ? 0 : (sxy * sxy) / (sxx * syy)
   return { slope, intercept, r2 }
 }
+
+/** «hoy», «hace 1 día», «hace 4 días». */
+export function agoLabel(ageDays: number): string {
+  if (ageDays <= 0) return 'hoy'
+  return ageDays === 1 ? 'hace 1 día' : `hace ${ageDays} días`
+}
+
+/** Minutos transcurridos entre un instante ISO y `now` (nunca negativo). */
+export function minutesSince(iso: string, now: Date): number {
+  return Math.max(0, Math.round((now.getTime() - Date.parse(iso)) / 60000))
+}
+
+/** Hora en Bogotá, p. ej. «1:00 p. m.». */
+export function bogotaTime(iso: string): string {
+  return new Date(iso).toLocaleTimeString('es-CO', { hour: 'numeric', minute: '2-digit', timeZone: 'America/Bogota' })
+}
+
+export function bogotaDate(iso: string): string {
+  return new Date(iso).toLocaleDateString('sv-SE', { timeZone: 'America/Bogota' }) // yyyy-mm-dd
+}

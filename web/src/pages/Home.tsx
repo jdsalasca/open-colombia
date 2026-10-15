@@ -1,13 +1,15 @@
 import { Link } from 'react-router-dom'
 import { PaperCard } from '../paper/PaperCard'
 import { PaperSheet } from '../paper/PaperSheet'
-import type { IndicatorsResponse } from '../types'
+import type { IndicatorsResponse, LiveSnapshot } from '../types'
+import { Today } from './Today'
 
 const COLORS = ['yellow', 'blue', 'red', 'green', 'kraft', 'cream'] as const
 
-export function Home({ data }: { data: IndicatorsResponse }) {
+export function Home({ data, live = null }: { data: IndicatorsResponse; live?: LiveSnapshot | null }) {
   return (
     <>
+      <Today live={live} data={data} />
       <p className="lead">
         Cómo va Colombia, con datos abiertos oficiales: cada cifra trae su fuente y su fecha. Si una fuente no
         responde, verás «sin dato», nunca un número inventado.

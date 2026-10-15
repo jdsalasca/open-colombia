@@ -12,6 +12,7 @@ export function SourceChip({ series, date }: Props) {
         {series.source}
       </a>
       {date ? ` · ${date}` : ''} · {series.periodicity}
+      {series.freshness?.stale ? ' · ⚠ desactualizado' : ''}
     </p>
   )
 }

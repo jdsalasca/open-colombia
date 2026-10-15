@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import { BrowserRouter, NavLink, Route, Routes } from 'react-router-dom'
-import { getIndicators, getInsights } from './api'
+import { getIndicators, getInsights, getLive } from './api'
 import { RefreshButton } from './components/RefreshButton'
 import { ChartDefs } from './paper/ChartDefs'
 import { PaperSheet } from './paper/PaperSheet'
@@ -9,15 +9,18 @@ import { Methodology } from './pages/Methodology'
 import { MethodologyIndex } from './pages/MethodologyIndex'
 import { Proposals } from './pages/Proposals'
 import { ThemePage } from './pages/ThemePage'
-import type { IndicatorsResponse, Insight } from './types'
+import type { IndicatorsResponse, Insight, LiveSnapshot } from './types'
 
 export default function App() {
   const [data, setData] = useState<IndicatorsResponse | null>(null)
   const [insights, setInsights] = useState<Insight[]>([])
+  const [live, setLive] = useState<LiveSnapshot | null>(null)
   const [error, setError] = useState(false)
 
   const load = useCallback(async () => {
     try {
+      // lo en vivo es opcional: si falla, el resto de la página sigue
+      void getLive().then(setLive).catch(() => setLive(null))
       const [d, i] = await Promise.all([getIndicators(), getInsights()])
       setData(d)
       setInsights(i)
@@ -66,7 +69,7 @@ export default function App() {
           )}
           {data && (
             <Routes>
-              <Route path="/" element={<Home data={data} />} />
+              <Route path="/" element={<Home data={data} live={live} />} />
               <Route path="/tema/:id" element={<ThemePage data={data} insights={insights} />} />
               <Route path="/propuestas" element={<Proposals insights={insights} />} />
               <Route path="/metodologia" element={<MethodologyIndex />} />

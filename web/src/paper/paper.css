@@ -185,3 +185,11 @@ a { color: inherit; }
 .trend { stroke: var(--cat-2); stroke-width: 2; stroke-dasharray: 7 6; }
 
 .codeblock { margin: 6px 0 0; padding: 8px 10px; background: #fffaf0; border: 1px solid rgba(43, 33, 24, 0.3); border-radius: 3px; font-size: 0.8rem; white-space: pre-wrap; overflow-wrap: anywhere; }
+
+/* v3: panel «Hoy» */
+.today h2 { margin: 18px 0 4px; }
+.live-badge {
+  display: inline-block; padding: 1px 8px; border-radius: 99px; font-weight: 800; font-size: 0.75rem;
+  background: var(--bad); color: #fff; letter-spacing: 0.04em; text-transform: uppercase;
+}
+.today-card .linechart { max-height: 150px; }

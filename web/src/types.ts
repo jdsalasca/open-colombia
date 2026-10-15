@@ -3,6 +3,13 @@ export interface Point {
   value: number
 }
 
+export interface Freshness {
+  lastDataDate: string | null
+  ageDays: number
+  staleAfterDays: number
+  stale: boolean
+}
+
 export interface Series {
   id: string
   theme: string
@@ -13,6 +20,8 @@ export interface Series {
   periodicity: string
   points: Point[]
   fetchedAt: string | null
+  /** Calculada por el servidor con la fecha real del último dato. */
+  freshness?: Freshness | null
 }
 
 export interface ThemeView {
@@ -125,4 +134,33 @@ export class ApiError extends Error {
     this.status = status
     this.availableRanges = availableRanges
   }
+}
+
+export interface Tick {
+  t: string
+  v: number
+}
+
+export interface UsdCop {
+  ticks: Tick[]
+  last: number
+  open: number
+  changePct: number
+  lastTickAt: string
+}
+
+export interface Quake {
+  time: string
+  mag: number
+  place: string
+  lat: number
+  lon: number
+  depthKm: number
+}
+
+export interface LiveSnapshot {
+  usdCop: UsdCop | null
+  quakes: Quake[]
+  fetchedAt: string | null
+  errors: Record<string, string>
 }

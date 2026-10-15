@@ -3,6 +3,7 @@ import type {
   Breakdown,
   IndicatorsResponse,
   Insight,
+  LiveSnapshot,
   Methodology,
   RefreshOutcome,
   RefreshReport,
@@ -52,3 +53,5 @@ export const getMethodologyIndex = (): Promise<Methodology[]> => getJson('/api/m
 
 export const getBreakdown = (dim: string, range: string): Promise<Breakdown> =>
   getJson(`/api/breakdowns/homicidios?dim=${encodeURIComponent(dim)}&range=${encodeURIComponent(range)}`)
+
+export const getLive = (): Promise<LiveSnapshot> => getJson('/api/live')
