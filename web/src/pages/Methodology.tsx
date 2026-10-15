@@ -43,6 +43,12 @@ export function Methodology() {
           Consulta exacta que hace esta app:{' '}
           <a href={m.queryUrl} target="_blank" rel="noreferrer">{m.queryUrl}</a>
         </li>
+        {m.queryBody && (
+          <li>
+            Esta fuente se consulta por <strong>POST</strong> con este cuerpo (endpoint público sin contrato oficial):
+            <pre className="codeblock"><code>{m.queryBody}</code></pre>
+          </li>
+        )}
         <li>Los datos que mostramos (JSON): <a href={m.seriesUrl}>{m.seriesUrl}</a></li>
       </ul>
       <p className="chip">

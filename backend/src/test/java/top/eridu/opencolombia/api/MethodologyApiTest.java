@@ -49,6 +49,16 @@ class MethodologyApiTest {
     }
 
     @Test
+    void xmExposesEndpointAndJsonBodyBecauseItIsAPost() throws Exception {
+        mvc.perform(get("/api/methodology/energia-precio-bolsa")).andExpect(status().isOk())
+                .andExpect(jsonPath("$.source").value("XM"))
+                .andExpect(jsonPath("$.queryUrl").value("https://servapibi.xm.com.co/hourly"))
+                .andExpect(jsonPath("$.queryBody").value(containsString("\"MetricId\":\"PrecBolsNaci\"")));
+        mvc.perform(get("/api/methodology/trm")).andExpect(status().isOk())
+                .andExpect(jsonPath("$.queryBody").doesNotExist());
+    }
+
+    @Test
     void internalFlagsNeverLeakIntoQueryUrl() throws Exception {
         mvc.perform(get("/api/methodology/homicidios-mensual")).andExpect(status().isOk())
                 .andExpect(jsonPath("$.queryUrl").value(org.hamcrest.Matchers.not(containsString("dropCurrentPeriod"))));
@@ -57,6 +67,6 @@ class MethodologyApiTest {
     @Test
     void unknownIdIs404AndIndexListsAll() throws Exception {
         mvc.perform(get("/api/methodology/nope")).andExpect(status().isNotFound());
-        mvc.perform(get("/api/methodology")).andExpect(status().isOk()).andExpect(jsonPath("$.length()").value(14));
+        mvc.perform(get("/api/methodology")).andExpect(status().isOk()).andExpect(jsonPath("$.length()").value(23));
     }
 }

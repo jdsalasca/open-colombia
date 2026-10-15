@@ -11,7 +11,7 @@ import top.eridu.opencolombia.source.IndicatorSpec;
 @RestController
 public class MethodologyController {
     public record Methodology(String id, String name, String theme, String description, String method,
-                              String source, String sourceUrl, String queryUrl, String seriesUrl,
+                              String source, String sourceUrl, String queryUrl, String queryBody, String seriesUrl,
                               String periodicity, String unit, Boolean higherIsBetter) {}
 
     private final List<IndicatorSpec> specs;
@@ -22,8 +22,8 @@ public class MethodologyController {
 
     private static Methodology of(IndicatorSpec s) {
         return new Methodology(s.id(), s.name(), s.theme().id(), s.description(), s.method(), s.sourceName(),
-                s.sourceUrl(), s.queryUrl(), "/api/series/" + s.id(), s.periodicity(), s.unit(),
-                s.higherIsBetter());
+                s.sourceUrl(), s.queryUrl(), s.queryBody(java.time.LocalDate.now()), "/api/series/" + s.id(),
+                s.periodicity(), s.unit(), s.higherIsBetter());
     }
 
     @GetMapping("/api/methodology")

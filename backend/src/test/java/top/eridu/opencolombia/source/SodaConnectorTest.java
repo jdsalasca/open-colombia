@@ -72,6 +72,63 @@ class SodaConnectorTest {
     }
 
     @Test
+    void dailyRatioDividesSumByStationsAndSkipsZeroDivisors() throws Exception {
+        Map<String, String> p = new LinkedHashMap<>();
+        p.put("$select", "date_trunc_ymd(fechaobservacion) as dia, sum(valorobservado) as s, count(distinct codigoestacion) as n");
+        p.put("divideBy", "n");
+        p.put("dropCurrentDay", "true");
+        var rain = new IndicatorSpec("lluvia", Theme.AMBIENTE_ENERGIA, "Lluvia", "mm", "diaria",
+                IndicatorSpec.Kind.SODA, "s54a-sgyg", p, "s", "dia");
+        server.expect(requestTo(startsWith("https://www.datos.gov.co/resource/s54a-sgyg.json")))
+                .andRespond(withSuccess(fx("soda-rain.json"), MediaType.APPLICATION_JSON));
+        var s = connector.fetch(rain);
+        // 2026-10-10 tiene n=0 (se omite) y 2026-10-13 es «hoy» según el reloj fijo (se descarta por incompleto)
+        assertThat(s.points()).extracting(Point::date)
+                .containsExactly(LocalDate.of(2026, 10, 11), LocalDate.of(2026, 10, 12));
+        assertThat(s.points().get(1).value()).isCloseTo(6293.424 / 476, org.assertj.core.data.Offset.offset(1e-6));
+    }
+
+    @Test
+    void dropsTheLastPublishedPeriodsWhenTheSourceConsolidatesWithLag() throws Exception {
+        Map<String, String> p = new LinkedHashMap<>();
+        p.put("dropLastPeriods", "1");
+        var crime = new IndicatorSpec("hurto", Theme.SEGURIDAD, "Hurto", "casos/mes", "mensual",
+                IndicatorSpec.Kind.SODA, "4rxi-8m8d", p, "v", "mes");
+        server.expect(requestTo(startsWith("https://www.datos.gov.co/resource/4rxi-8m8d.json")))
+                .andRespond(withSuccess("[{\"mes\":\"2026-06-01T00:00:00.000\",\"v\":\"22725\"},"
+                        + "{\"mes\":\"2026-07-01T00:00:00.000\",\"v\":\"22591\"},"
+                        + "{\"mes\":\"2026-08-01T00:00:00.000\",\"v\":\"18686\"}]", MediaType.APPLICATION_JSON));
+        assertThat(connector.fetch(crime).points()).extracting(Point::date)
+                .containsExactly(LocalDate.of(2026, 6, 1), LocalDate.of(2026, 7, 1));
+    }
+
+    @Test
+    void lagFlagNeverEmptiesASeriesWithASinglePoint() throws Exception {
+        Map<String, String> p = new LinkedHashMap<>();
+        p.put("dropLastPeriods", "2");
+        var crime = new IndicatorSpec("hurto", Theme.SEGURIDAD, "Hurto", "casos/mes", "mensual",
+                IndicatorSpec.Kind.SODA, "4rxi-8m8d", p, "v", "mes");
+        server.expect(requestTo(startsWith("https://www.datos.gov.co/resource/4rxi-8m8d.json")))
+                .andRespond(withSuccess("[{\"mes\":\"2026-08-01T00:00:00.000\",\"v\":\"100\"}]",
+                        MediaType.APPLICATION_JSON));
+        // con menos puntos que los que se descartarían se conserva todo: mejor un dato dudoso que ninguno
+        assertThat(connector.fetch(crime).points()).hasSize(1);
+    }
+
+    @Test
+    void dropsTheCurrentDayWhenFlagged() throws Exception {
+        Map<String, String> p = new LinkedHashMap<>();
+        p.put("dropCurrentDay", "true");
+        var temp = new IndicatorSpec("temp", Theme.AMBIENTE_ENERGIA, "Temperatura", "C", "diaria",
+                IndicatorSpec.Kind.SODA, "sbwg-7ju4", p, "v", "dia");
+        server.expect(requestTo(startsWith("https://www.datos.gov.co/resource/sbwg-7ju4.json")))
+                .andRespond(withSuccess("[{\"dia\":\"2026-10-12T00:00:00.000\",\"v\":\"21.3\"},"
+                        + "{\"dia\":\"2026-10-13T00:00:00.000\",\"v\":\"30.0\"}]", MediaType.APPLICATION_JSON));
+        assertThat(connector.fetch(temp).points()).extracting(Point::date)
+                .containsExactly(LocalDate.of(2026, 10, 12)); // 13 = hoy según el reloj fijo
+    }
+
+    @Test
     void dropsCurrentPartialMonthWhenFlagged() throws Exception {
         Map<String, String> p = new LinkedHashMap<>();
         p.put("$select", "date_trunc_ym(fecha_hecho) as mes, sum(cantidad) as v");

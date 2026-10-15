@@ -28,3 +28,20 @@ Todas consultadas contra la API real el 2026-10-13. Sin llave.
 - DANE desempleo/IPC mensual: no hay dataset oficial en datos.gov.co (búsqueda sin resultados útiles); se usa Banco Mundial anual.
 - `axk9-g2nh` tasas de captación: por entidad financiera, no una serie nacional.
 - Cobertura educativa y deforestación en datos.gov.co: solo datasets municipales/departamentales dispersos.
+
+## Añadidas en v3 (verificadas 2026-10-14)
+| Dataset | Uso | Nota |
+|---|---|---|
+| `4rxi-8m8d` Hurto a personas (Policía) | suma mensual de `cantidad` | hasta 2026-08 |
+| `q2ib-t9am` Extorsión (Policía) | suma mensual | hasta 2026-08 |
+| `d7zw-hpf4` Secuestro (Policía) | suma mensual | hasta 2026-08 |
+| `4v6r-wu98` Delitos informáticos (Policía) | suma mensual | hasta 2026-08 |
+| `gepp-dxcs` Violencia intrafamiliar (Policía) | suma mensual | hasta 2026-08 |
+| `sbwg-7ju4` Temperatura del aire (IDEAM) | `avg(valorobservado)` por día, -5 a 45 °C | ~20 mil lecturas/día; llega hasta ayer |
+| `s54a-sgyg` Precipitación (IDEAM) | `sum(valorobservado) / count(distinct codigoestacion)` por día | ~82 mil lecturas/día, ~476 estaciones; tarda ~8 s |
+
+Los datasets de IDEAM se agregan siempre en servidor con una ventana móvil de 120 días.
+
+Nota de calidad (2026-10-14): en las series de la Policía el último mes publicado llega incompleto (agosto 2026 aparecía
+17-48 % por debajo de julio, sin que ocurriera en 2025). Se descarta con `dropLastPeriods=1`. En la temperatura de IDEAM la
+propia fuente tiene ~18 días sin datos (25 jul - 11 ago 2026): se muestran como huecos.

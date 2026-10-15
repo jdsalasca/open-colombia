@@ -91,6 +91,8 @@ export interface Methodology {
   source: string
   sourceUrl: string
   queryUrl: string
+  /** Solo fuentes consultadas por POST (XM): cuerpo JSON de la petición. */
+  queryBody: string | null
   seriesUrl: string
   periodicity: string
   unit: string

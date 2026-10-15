@@ -77,9 +77,39 @@ describe('RatesPanel', () => {
 const meth: Methodology = {
   id: 'trm', name: 'Tasa de cambio', theme: 'economia', description: 'Pesos por dólar.',
   method: 'Promedio mensual de la TRM diaria.', source: 'datos.gov.co', sourceUrl: 'https://www.datos.gov.co/d/32sa-8pi3',
-  queryUrl: 'https://www.datos.gov.co/resource/32sa-8pi3.json?$select=a&$limit=5000', seriesUrl: '/api/series/trm',
+  queryUrl: 'https://www.datos.gov.co/resource/32sa-8pi3.json?$select=a&$limit=5000', queryBody: null, seriesUrl: '/api/series/trm',
   periodicity: 'mensual', unit: 'COP/USD', higherIsBetter: null,
 }
+
+describe('Methodology page for POST sources', () => {
+  it('shows the JSON body when the source is queried with POST', async () => {
+    const xm = { ...meth, id: 'energia-precio-bolsa', source: 'XM', queryUrl: 'https://servapibi.xm.com.co/hourly',
+      queryBody: '{"MetricId":"PrecBolsNaci","StartDate":"2026-06-16"}' }
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response(JSON.stringify(xm), { status: 200 })))
+    render(
+      <MemoryRouter initialEntries={['/metodologia/energia-precio-bolsa']}>
+        <Routes>
+          <Route path="/metodologia/:id" element={<MethodologyPage />} />
+        </Routes>
+      </MemoryRouter>,
+    )
+    expect(await screen.findByText(/"MetricId":"PrecBolsNaci"/)).toBeInTheDocument()
+    expect(screen.getByText(/POST/)).toBeInTheDocument()
+  })
+
+  it('does not mention POST for GET sources', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response(JSON.stringify({ ...meth, queryBody: null }), { status: 200 })))
+    render(
+      <MemoryRouter initialEntries={['/metodologia/trm']}>
+        <Routes>
+          <Route path="/metodologia/:id" element={<MethodologyPage />} />
+        </Routes>
+      </MemoryRouter>,
+    )
+    await screen.findByText(/Promedio mensual de la TRM diaria/)
+    expect(screen.queryByText(/por POST/)).toBeNull()
+  })
+})
 
 describe('Methodology page', () => {
   it('shows the exact query url as a link', async () => {
