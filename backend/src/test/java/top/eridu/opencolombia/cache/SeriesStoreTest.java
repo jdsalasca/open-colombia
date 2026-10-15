@@ -28,6 +28,22 @@ class SeriesStoreTest {
     }
 
     @Test
+    void filesThatAreNotSeriesAreIgnoredEvenIfTheyAreValidJson() throws Exception {
+        var store = new SeriesStore(dir);
+        store.put(s("good"));
+        // live.json comparte carpeta: es JSON válido pero no es una serie
+        Files.writeString(dir.resolve("live.json"), "{\"usdCop\":null,\"quakes\":[],\"fetchedAt\":null,\"errors\":{}}");
+        // JSON válido pero incompleto (esquema viejo o truncado)
+        Files.writeString(dir.resolve("partial.json"), "{\"id\":\"partial\"}");
+        // el id interno no coincide con el nombre del archivo
+        Files.writeString(dir.resolve("other.json"), Files.readString(dir.resolve("good.json")));
+        assertThat(store.all()).extracting(Series::id).containsExactly("good");
+        assertThat(store.get("live")).isEmpty();
+        assertThat(store.get("partial")).isEmpty();
+        assertThat(store.get("other")).isEmpty();
+    }
+
+    @Test
     void allOnMissingDirIsEmpty() {
         assertThat(new SeriesStore(dir.resolve("nope")).all()).isEmpty();
     }

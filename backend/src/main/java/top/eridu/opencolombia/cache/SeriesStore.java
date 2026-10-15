@@ -50,7 +50,13 @@ public class SeriesStore {
         Path f = dir.resolve(id + ".json");
         if (!Files.isRegularFile(f)) return Optional.empty();
         try {
-            return Optional.of(mapper.readValue(f.toFile(), Series.class));
+            Series s = mapper.readValue(f.toFile(), Series.class);
+            // otros JSON de la carpeta (live.json), esquemas viejos o archivos truncados no son series
+            if (s == null || !id.equals(s.id()) || s.theme() == null || s.points() == null) {
+                log.warn("Archivo de caché que no es una serie válida: {}", f);
+                return Optional.empty();
+            }
+            return Optional.of(s);
         } catch (RuntimeException e) {
             log.warn("Archivo de caché ilegible: {}", f, e);
             return Optional.empty();
