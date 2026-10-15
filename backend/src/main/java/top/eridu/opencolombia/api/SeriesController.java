@@ -1,5 +1,7 @@
 package top.eridu.opencolombia.api;
 
+import java.time.Clock;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -24,9 +26,12 @@ public class SeriesController {
     private final SeriesStore store;
     private final List<IndicatorSpec> specs;
 
-    public SeriesController(SeriesStore store, List<IndicatorSpec> specs) {
+    private final Clock clock;
+
+    public SeriesController(SeriesStore store, List<IndicatorSpec> specs, Clock clock) {
         this.store = store;
         this.specs = specs;
+        this.clock = clock;
     }
 
     /**
@@ -55,7 +60,9 @@ public class SeriesController {
                     "error", "Rango no válido para una serie " + spec.get().periodicity() + ": " + rangeCode,
                     "availableRanges", codes));
         }
-        Series full = store.get(id).orElseGet(() -> spec.get().placeholder());
+        // la frescura se calcula con la serie completa: el recorte conserva siempre el último dato
+        Series full = spec.get().freshen(store.get(id).orElseGet(() -> spec.get().placeholder()),
+                LocalDate.now(clock));
         Series windowed = range.get().apply(full);
         return ResponseEntity.ok(new SeriesResponse(windowed, range.get().code(), codes,
                 rates(windowed, spec.get()), spec.get().higherIsBetter()));

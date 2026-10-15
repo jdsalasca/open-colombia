@@ -1,6 +1,8 @@
 package top.eridu.opencolombia.api;
 
+import java.time.Clock;
 import java.time.Instant;
+import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
@@ -29,17 +31,22 @@ public class IndicatorController {
     private final InsightService insights;
     private final List<IndicatorSpec> specs;
 
-    public IndicatorController(SeriesStore store, InsightService insights, List<IndicatorSpec> specs) {
+    private final Clock clock;
+
+    public IndicatorController(SeriesStore store, InsightService insights, List<IndicatorSpec> specs, Clock clock) {
         this.store = store;
         this.insights = insights;
         this.specs = specs;
+        this.clock = clock;
     }
 
     /** Todos los indicadores del catálogo: los que no cargaron salen vacíos, no desaparecen. */
     private List<Series> merged() {
         Map<String, Series> cached = store.all().stream()
                 .collect(Collectors.toMap(Series::id, Function.identity(), (a, b) -> b));
-        return specs.stream().map(sp -> cached.getOrDefault(sp.id(), sp.placeholder())).toList();
+        LocalDate today = LocalDate.now(clock);
+        return specs.stream()
+                .map(sp -> sp.freshen(cached.getOrDefault(sp.id(), sp.placeholder()), today)).toList();
     }
 
     private ThemeView view(Theme t, List<Series> all) {

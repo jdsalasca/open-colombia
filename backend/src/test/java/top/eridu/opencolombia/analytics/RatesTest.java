@@ -79,6 +79,29 @@ class RatesTest {
         assertThat(Range.Y1.apply(monthly(24, i -> i)).points()).hasSize(13);
     }
 
+    private static Series daily(int n) {
+        List<Point> pts = new ArrayList<>();
+        for (int i = 0; i < n; i++) pts.add(new Point(LocalDate.of(2026, 1, 1).plusDays(i), i));
+        return new Series("d", "ambiente-energia", "D", "C", "t", "u", "diaria", pts, Instant.EPOCH);
+    }
+
+    @Test
+    void dailyRangesCutByDaysInclusive() {
+        var s = daily(100);
+        assertThat(Range.D7.apply(s).points()).hasSize(8);   // 7 días de cambio = 8 puntos
+        assertThat(Range.D30.apply(s).points()).hasSize(31);
+        assertThat(Range.D90.apply(s).points()).hasSize(91);
+        assertThat(Range.D30.apply(s).latest().orElseThrow().value()).isEqualTo(99.0);
+        assertThat(Range.D90.apply(daily(10)).points()).hasSize(10); // ventana mayor que los datos: todo
+    }
+
+    @Test
+    void dailyAvailableRanges() {
+        assertThat(Range.availableFor("diaria")).containsExactly(Range.D7, Range.D30, Range.D90, Range.Y1, Range.ALL);
+        assertThat(Range.parse("30d")).contains(Range.D30);
+        assertThat(Range.availableFor("mensual")).doesNotContain(Range.D7);
+    }
+
     @Test
     void availableAndParse() {
         assertThat(Range.availableFor("mensual")).containsExactly(Range.M3, Range.M6, Range.Y1, Range.Y2, Range.ALL);

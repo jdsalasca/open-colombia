@@ -93,6 +93,20 @@ class SeriesApiTest {
     }
 
     @Test
+    void responseCarriesFreshnessComputedFromTheLastDataDate() throws Exception {
+        mvc.perform(get("/api/series/trm?range=6m")).andExpect(status().isOk())
+                .andExpect(jsonPath("$.series.freshness.lastDataDate").value("2026-06-01"))
+                .andExpect(jsonPath("$.series.freshness.stale").value(true)) // mensual vence a los 75 días
+                .andExpect(jsonPath("$.series.freshness.staleAfterDays").value(75));
+    }
+
+    @Test
+    void dailyRangesAreRejectedForMonthlySeries() throws Exception {
+        mvc.perform(get("/api/series/trm?range=7d")).andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.availableRanges", hasItem("6m")));
+    }
+
+    @Test
     void unknownIdIs404() throws Exception {
         mvc.perform(get("/api/series/nope")).andExpect(status().isNotFound());
     }
