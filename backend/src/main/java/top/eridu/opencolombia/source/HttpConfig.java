@@ -19,8 +19,9 @@ class HttpConfig {
                 .build();
     }
 
+    /** «Hoy» es el día calendario de Colombia (UTC-5): los datos diarios se consideran completos al terminar ese día. */
     @Bean
     Clock clock() {
-        return Clock.systemUTC();
+        return Clock.system(java.time.ZoneId.of("America/Bogota"));
     }
 }
