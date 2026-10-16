@@ -34,6 +34,13 @@ public class SeriesStore {
         this.dir = dir;
     }
 
+    /** Archivos de la misma carpeta que pertenecen a otros componentes (p. ej. live.json): no son series. */
+    private static final java.util.Set<String> RESERVED = java.util.Set.of("live");
+
+    public boolean isReserved(String id) {
+        return RESERVED.contains(id);
+    }
+
     public void put(Series s) {
         try {
             Files.createDirectories(dir);
@@ -47,13 +54,14 @@ public class SeriesStore {
     }
 
     public Optional<Series> get(String id) {
+        if (isReserved(id)) return Optional.empty();
         Path f = dir.resolve(id + ".json");
         if (!Files.isRegularFile(f)) return Optional.empty();
         try {
             Series s = mapper.readValue(f.toFile(), Series.class);
             // otros JSON de la carpeta (live.json), esquemas viejos o archivos truncados no son series
             if (s == null || !id.equals(s.id()) || s.theme() == null || s.points() == null) {
-                log.warn("Archivo de caché que no es una serie válida: {}", f);
+                log.debug("Archivo de caché que no es una serie válida: {}", f);
                 return Optional.empty();
             }
             return Optional.of(s);

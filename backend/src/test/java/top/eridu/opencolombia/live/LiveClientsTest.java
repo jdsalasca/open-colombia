@@ -93,6 +93,26 @@ class LiveClientsTest {
     }
 
     @Test
+    void onlyQuakesLocatedInColombiaAreKeptEvenThoughTheBoxCoversNeighbours() throws Exception {
+        server.expect(requestTo(startsWith("https://earthquake.usgs.gov")))
+                .andRespond(withSuccess(fx("usgs-quakes.json"), MediaType.APPLICATION_JSON));
+        var quakes = usgs.fetch();
+        assertThat(quakes).isNotEmpty().allSatisfy(q -> assertThat(q.place()).containsIgnoringCase("Colombia"));
+    }
+
+    @Test
+    void neighbouringCountriesAreDroppedFromTheBoundingBox() throws Exception {
+        String body = "{\"features\":["
+                + "{\"properties\":{\"mag\":4.8,\"place\":\"5 km NW of Cepitá, Colombia\",\"time\":1791926661135},\"geometry\":{\"coordinates\":[-73.0,6.7,160]}},"
+                + "{\"properties\":{\"mag\":4.9,\"place\":\"115 km WSW of Alianza Cristiana, Peru\",\"time\":1791926661136},\"geometry\":{\"coordinates\":[-75.0,-3.0,100]}},"
+                + "{\"properties\":{\"mag\":4.5,\"place\":\"44 km NNW of Duaca, Venezuela\",\"time\":1791926661137},\"geometry\":{\"coordinates\":[-69.0,10.0,10]}}]}";
+        server.expect(requestTo(startsWith("https://earthquake.usgs.gov"))).andRespond(withSuccess(body, MediaType.APPLICATION_JSON));
+        var quakes = usgs.fetch();
+        assertThat(quakes).hasSize(1);
+        assertThat(quakes.get(0).place()).contains("Cepit");
+    }
+
+    @Test
     void usgsErrorsAndMalformedPayloads() {
         server.expect(requestTo(startsWith("https://earthquake.usgs.gov"))).andRespond(withServerError());
         assertThatThrownBy(() -> usgs.fetch()).isInstanceOf(SourceException.class);

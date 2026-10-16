@@ -224,3 +224,4 @@ a { color: inherit; }
 .heat-legend { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; font-size: 0.8rem; margin: 6px 0 0; }
 .hist svg, .scatter svg { width: 100%; height: auto; max-height: 160px; }
 .quake { fill: var(--cat-2); fill-opacity: 0.75; stroke: var(--ink); stroke-width: 1; }
+.hist svg, .scatter svg { max-width: 460px; }

@@ -54,6 +54,12 @@ class SourceCatalogTest {
             assertThat(s.params()).containsKeys("sinceDaysAgo", "sinceField", "dropCurrentDay");
             assertThat(s.staleAfterDays()).isEqualTo(7);
         }
+        for (String id : List.of("temperatura-nacional", "precipitacion-nacional")) {
+            var s = specs.stream().filter(x -> x.id().equals(id)).findFirst().orElseThrow();
+            assertThat(s.params()).containsEntry("countField", "c").containsEntry("dropOutlierCounts", "true");
+            assertThat(s.params().get("$select")).contains("count(*) as c");
+            assertThat(s.method()).contains("atraso");
+        }
         var rain = specs.stream().filter(x -> x.id().equals("precipitacion-nacional")).findFirst().orElseThrow();
         assertThat(rain.params()).containsEntry("divideBy", "n");
     }

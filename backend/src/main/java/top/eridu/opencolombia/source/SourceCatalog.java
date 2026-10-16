@@ -37,13 +37,22 @@ public final class SourceCatalog {
                 false, IndicatorSpec.RefreshClass.DAILY, 130);
     }
 
+    /** Mapa ordenado a partir de pares clave, valor (Map.of admite solo 10 pares). */
+    private static Map<String, String> kv(String... pairs) {
+        Map<String, String> m = new java.util.LinkedHashMap<>();
+        for (int i = 0; i < pairs.length; i += 2) m.put(pairs[i], pairs[i + 1]);
+        return m;
+    }
+
     private static final String XM_METHOD =
             "API pública de XM (servapibi.xm.com.co/hourly), sin contrato oficial; consultas de hasta 31 días. "
                     + "El último dato disponible llega con unos 3 días de rezago.";
 
     private static final String IDEAM_BASE = "Promedio simple de las lecturas de todas las estaciones automáticas del IDEAM "
             + "(no está ponderado por área ni altitud); ventana móvil de 120 días, consultada en 4 bloques de 30 días. "
-            + "El día en curso se descarta por incompleto.";
+            + "El día en curso se descarta por incompleto. Se descartan los días cuyo número de lecturas es atípico "
+            + "(más de 2 veces o menos de 0,3 veces la mediana): en julio de 2026 la fuente volcó ~13 días de atraso "
+            + "bajo la fecha 24 de julio.";
 
     public static List<IndicatorSpec> specs() {
         return List.of(
@@ -99,21 +108,22 @@ public final class SourceCatalog {
                 "Niños en edad de primaria matriculados en primaria, como porcentaje de su grupo de edad.",
                 WB_METHOD, true),
             new IndicatorSpec("temperatura-nacional", Theme.AMBIENTE_ENERGIA,
-                "Temperatura del aire (promedio nacional diario)", "°C", "diaria", SODA, "sbwg-7ju4", Map.of(
-                    "$select", "date_trunc_ymd(fechaobservacion) as dia, avg(valorobservado) as v",
+                "Temperatura del aire (promedio nacional diario)", "°C", "diaria", SODA, "sbwg-7ju4", kv(
+                    "$select", "date_trunc_ymd(fechaobservacion) as dia, avg(valorobservado) as v, count(*) as c",
                     "$where", "valorobservado between -5 and 45",
                     "$group", "dia", "$order", "dia ASC", "$limit", "400",
-                    "sinceDaysAgo", "120", "sinceField", "fechaobservacion", "chunkDays", "30", "dropCurrentDay", "true"), "v", "dia",
+                    "sinceDaysAgo", "120", "sinceField", "fechaobservacion", "chunkDays", "30", "dropCurrentDay", "true",
+                    "countField", "c", "dropOutlierCounts", "true"), "v", "dia",
                 "Temperatura del aire a 2 m medida por las estaciones automáticas del IDEAM.",
                 IDEAM_BASE + " Se excluyen lecturas fuera de -5 a 45 °C.",
                 null),
             new IndicatorSpec("precipitacion-nacional", Theme.AMBIENTE_ENERGIA,
-                "Lluvia (mm por estación por día)", "mm/día", "diaria", SODA, "s54a-sgyg", Map.of(
-                    "$select", "date_trunc_ymd(fechaobservacion) as dia, sum(valorobservado) as s, count(distinct codigoestacion) as n",
+                "Lluvia (mm por estación por día)", "mm/día", "diaria", SODA, "s54a-sgyg", kv(
+                    "$select", "date_trunc_ymd(fechaobservacion) as dia, sum(valorobservado) as s, count(distinct codigoestacion) as n, count(*) as c",
                     "$where", "valorobservado >= 0 AND valorobservado < 500",
                     "$group", "dia", "$order", "dia ASC", "$limit", "400",
                     "sinceDaysAgo", "120", "sinceField", "fechaobservacion", "chunkDays", "30", "dropCurrentDay", "true",
-                    "divideBy", "n"), "s", "dia",
+                    "countField", "c", "dropOutlierCounts", "true", "divideBy", "n"), "s", "dia",
                 "Precipitación acumulada del día, en promedio por estación automática del IDEAM.",
                 "Suma diaria de las lecturas de precipitación dividida por el número de estaciones que reportaron ese día. "
                         + "Se excluyen lecturas negativas o mayores de 500 mm. " + IDEAM_BASE,

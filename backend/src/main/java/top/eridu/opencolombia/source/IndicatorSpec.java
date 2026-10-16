@@ -58,6 +58,36 @@ public record IndicatorSpec(String id, Theme theme, String name, String unit, St
         };
     }
 
+    /** Copia de este indicador con un parámetro cambiado o añadido. */
+    public IndicatorSpec withParam(String key, String value) {
+        Map<String, String> p = new java.util.LinkedHashMap<>(params);
+        p.put(key, value);
+        return new IndicatorSpec(id, theme, name, unit, periodicity, kind, ref, p, valueField, dateField,
+                description, method, higherIsBetter, refresh, staleAfterDays);
+    }
+
+    /** Días de la ventana móvil, o 0 si el indicador no la usa. */
+    public int rollingWindowDays() {
+        String d = params.get("sinceDaysAgo");
+        return d != null && params.get("sinceField") != null ? Integer.parseInt(d) : 0;
+    }
+
+    /**
+     * Versión «incremental» para una serie con ventana móvil que ya tiene caché reciente: pide solo desde unos
+     * días antes de su último dato (margen de 10 días para recoger correcciones). Vacío si no aplica: sin
+     * ventana, sin caché, caché más vieja que la ventana, o cuando pediría casi todo igual.
+     */
+    public java.util.Optional<IndicatorSpec> incremental(Series cached, java.time.LocalDate today) {
+        int window = rollingWindowDays();
+        if (window == 0 || cached == null) return java.util.Optional.empty();
+        return cached.latest().map(l -> {
+            long age = java.time.temporal.ChronoUnit.DAYS.between(l.date(), today);
+            long wanted = age + 10;
+            if (age < 0 || age >= window || wanted >= window) return null;
+            return withParam("sinceDaysAgo", String.valueOf(wanted));
+        });
+    }
+
     /** Adjunta la frescura de la serie según el vencimiento de este indicador. */
     public Series freshen(Series s, java.time.LocalDate today) {
         return s.withFreshness(Freshness.of(s, staleAfterDays, today));

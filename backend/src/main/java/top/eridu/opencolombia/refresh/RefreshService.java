@@ -28,12 +28,20 @@ public class RefreshService {
     private final List<SourceConnector> connectors;
     private final SeriesStore store;
     private final List<IndicatorSpec> specs;
+    private final java.time.Clock clock;
     private CompletableFuture<RefreshReport> inFlight; // protegido por this
 
-    public RefreshService(List<SourceConnector> connectors, SeriesStore store, List<IndicatorSpec> specs) {
+    @org.springframework.beans.factory.annotation.Autowired
+    public RefreshService(List<SourceConnector> connectors, SeriesStore store, List<IndicatorSpec> specs,
+                          java.time.Clock clock) {
         this.connectors = connectors;
         this.store = store;
         this.specs = specs;
+        this.clock = clock;
+    }
+
+    public RefreshService(List<SourceConnector> connectors, SeriesStore store, List<IndicatorSpec> specs) {
+        this(connectors, store, specs, java.time.Clock.systemUTC());
     }
 
     /** Re-consulta todas las fuentes en paralelo. Un fallo nunca borra datos previos. */
@@ -100,14 +108,27 @@ public class RefreshService {
         }
     }
 
+    /** Une lo guardado (dentro de la ventana) con lo recién pedido; lo nuevo pisa lo viejo en la misma fecha. */
+    private static Series merge(Series cached, Series fresh, LocalDate windowStart) {
+        java.util.Map<LocalDate, top.eridu.opencolombia.model.Point> byDate = new java.util.TreeMap<>();
+        cached.points().stream().filter(p -> !p.date().isBefore(windowStart)).forEach(p -> byDate.put(p.date(), p));
+        fresh.points().forEach(p -> byDate.put(p.date(), p));
+        return fresh.withPoints(new ArrayList<>(byDate.values()));
+    }
+
     private SourceResult refreshOne(IndicatorSpec spec) {
         SourceConnector c = connectors.stream().filter(x -> x.supports(spec)).findFirst().orElse(null);
         if (c == null) return new SourceResult(spec.id(), false, "Sin conector para esta fuente.");
+        // series con ventana móvil y caché reciente: se pide solo lo nuevo y se fusiona con lo guardado
+        LocalDate today = LocalDate.now(clock);
+        Series cached = store.get(spec.id()).orElse(null);
+        IndicatorSpec effective = spec.incremental(cached, today).orElse(spec);
         Exception last = null;
         for (int attempt = 0; attempt < 2; attempt++) {
             try {
-                Series s = c.fetch(spec);
+                Series s = c.fetch(effective);
                 if (s.points().isEmpty()) return new SourceResult(spec.id(), false, "La fuente no devolvió datos.");
+                if (effective != spec) s = merge(cached, s, today.minusDays(spec.rollingWindowDays()));
                 store.put(s);
                 return new SourceResult(spec.id(), true, null);
             } catch (SourceException | RuntimeException e) {

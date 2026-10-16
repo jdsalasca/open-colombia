@@ -88,6 +88,52 @@ class SodaConnectorTest {
         assertThat(s.points().get(1).value()).isCloseTo(6293.424 / 476, org.assertj.core.data.Offset.offset(1e-6));
     }
 
+    private IndicatorSpec daily(Map<String, String> p) {
+        return new IndicatorSpec("t", Theme.AMBIENTE_ENERGIA, "T", "C", "diaria", IndicatorSpec.Kind.SODA,
+                "sbwg-7ju4", p, "v", "dia");
+    }
+
+    @Test
+    void dropsDaysWhoseReadingCountIsAnOutlierBecauseTheSourceDumpedABacklog() throws Exception {
+        Map<String, String> p = new LinkedHashMap<>();
+        p.put("countField", "c");
+        p.put("dropOutlierCounts", "true");
+        // 2026-07-24 trae 1.36 M de lecturas (backlog de ~13 días bajo una sola fecha); 2026-07-26 solo 20 mil
+        server.expect(requestTo(startsWith("https://www.datos.gov.co/resource/sbwg-7ju4.json")))
+                .andRespond(withSuccess("[{\"dia\":\"2026-07-21T00:00:00.000\",\"v\":\"5.0\",\"c\":\"100000\"},"
+                        + "{\"dia\":\"2026-07-22T00:00:00.000\",\"v\":\"6.0\",\"c\":\"99576\"},"
+                        + "{\"dia\":\"2026-07-23T00:00:00.000\",\"v\":\"7.0\",\"c\":\"101000\"},"
+                        + "{\"dia\":\"2026-07-24T00:00:00.000\",\"v\":\"80.0\",\"c\":\"1358690\"},"
+                        + "{\"dia\":\"2026-07-26T00:00:00.000\",\"v\":\"9.0\",\"c\":\"20000\"},"
+                        + "{\"dia\":\"2026-07-27T00:00:00.000\",\"v\":\"8.0\",\"c\":\"98000\"}]",
+                        MediaType.APPLICATION_JSON));
+        assertThat(connector.fetch(daily(p)).points()).extracting(Point::date).containsExactly(
+                LocalDate.of(2026, 7, 21), LocalDate.of(2026, 7, 22), LocalDate.of(2026, 7, 23), LocalDate.of(2026, 7, 27));
+    }
+
+    @Test
+    void outlierRuleDoesNotApplyWithFewerThanFiveDaysBecauseTheMedianIsNotReliable() throws Exception {
+        Map<String, String> p = new LinkedHashMap<>();
+        p.put("countField", "c");
+        p.put("dropOutlierCounts", "true");
+        server.expect(requestTo(startsWith("https://www.datos.gov.co/resource/sbwg-7ju4.json")))
+                .andRespond(withSuccess("[{\"dia\":\"2026-07-21T00:00:00.000\",\"v\":\"5.0\",\"c\":\"100\"},"
+                        + "{\"dia\":\"2026-07-22T00:00:00.000\",\"v\":\"6.0\",\"c\":\"90000\"}]",
+                        MediaType.APPLICATION_JSON));
+        assertThat(connector.fetch(daily(p)).points()).hasSize(2);
+    }
+
+    @Test
+    void rowsWithoutACountAreKeptWhenTheRuleIsOn() throws Exception {
+        Map<String, String> p = new LinkedHashMap<>();
+        p.put("countField", "c");
+        p.put("dropOutlierCounts", "true");
+        server.expect(requestTo(startsWith("https://www.datos.gov.co/resource/sbwg-7ju4.json")))
+                .andRespond(withSuccess("[{\"dia\":\"2026-07-21T00:00:00.000\",\"v\":\"5.0\"},"
+                        + "{\"dia\":\"2026-07-22T00:00:00.000\",\"v\":\"6.0\"}]", MediaType.APPLICATION_JSON));
+        assertThat(connector.fetch(daily(p)).points()).hasSize(2);
+    }
+
     @Test
     void dropsTheLastPublishedPeriodsWhenTheSourceConsolidatesWithLag() throws Exception {
         Map<String, String> p = new LinkedHashMap<>();

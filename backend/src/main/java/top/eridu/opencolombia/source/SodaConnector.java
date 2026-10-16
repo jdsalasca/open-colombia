@@ -7,6 +7,7 @@ import java.time.YearMonth;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.client.RestClientException;
@@ -18,6 +19,11 @@ import top.eridu.opencolombia.model.Series;
 /** Datasets de datos.gov.co (Socrata SODA), agregados en el servidor con SoQL. */
 @Component
 public class SodaConnector implements SourceConnector {
+    /** Con menos días que esto la mediana del conteo no es confiable y la regla de outliers no se aplica. */
+    private static final int MIN_DAYS_FOR_OUTLIER_RULE = 5;
+    /** Un día con más de 2x o menos de 0,3x la mediana de lecturas no representa a ese día. */
+    private static final double OUTLIER_HIGH = 2.0;
+    private static final double OUTLIER_LOW = 0.3;
 
     private final RestClient http;
     private final Clock clock;
@@ -37,8 +43,9 @@ public class SodaConnector implements SourceConnector {
     public Series fetch(IndicatorSpec spec) throws SourceException {
         List<String> urls = spec.chunkUrls(LocalDate.now(clock));
         List<Point> points = new ArrayList<>();
+        Map<LocalDate, Double> counts = new java.util.HashMap<>();
         if (urls.size() == 1) {
-            points.addAll(parse(get(urls.get(0), spec), spec));
+            points.addAll(parse(get(urls.get(0), spec), spec, counts));
         } else {
             // bloques en paralelo: cada uno cabe en el timeout; si uno falla, falla toda la serie
             try (var pool = java.util.concurrent.Executors.newVirtualThreadPerTaskExecutor()) {
@@ -46,7 +53,7 @@ public class SodaConnector implements SourceConnector {
                         .map(u -> pool.submit(() -> get(u, spec))).toList();
                 for (var f : parts) {
                     try {
-                        points.addAll(parse(f.get(), spec));
+                        points.addAll(parse(f.get(), spec, counts));
                     } catch (InterruptedException | java.util.concurrent.ExecutionException e) {
                         Throwable c = e.getCause() == null ? e : e.getCause();
                         if (c instanceof SourceException se) throw se;
@@ -60,7 +67,7 @@ public class SodaConnector implements SourceConnector {
         points.forEach(p -> byDate.put(p.date(), p));
         List<Point> merged = new ArrayList<>(byDate.values());
         return new Series(spec.id(), spec.theme().id(), spec.name(), spec.unit(), "datos.gov.co",
-                spec.sourceUrl(), spec.periodicity(), applyFlags(merged, spec), clock.instant());
+                spec.sourceUrl(), spec.periodicity(), applyFlags(merged, spec, counts), clock.instant());
     }
 
     private String get(String url, IndicatorSpec spec) throws SourceException {
@@ -71,7 +78,7 @@ public class SodaConnector implements SourceConnector {
         }
     }
 
-    private List<Point> parse(String body, IndicatorSpec spec) throws SourceException {
+    private List<Point> parse(String body, IndicatorSpec spec, Map<LocalDate, Double> counts) throws SourceException {
         JsonNode root;
         try {
             root = mapper.readTree(body == null ? "[]" : body);
@@ -81,9 +88,14 @@ public class SodaConnector implements SourceConnector {
         List<Point> out = new ArrayList<>();
         if (!root.isArray()) return out;
         String divisor = spec.params().get("divideBy");
+        String countField = spec.params().get("countField");
         for (JsonNode row : root) {
             Double v = Values.number(row.get(spec.valueField()));
             LocalDate d = Values.isoDate(row.get(spec.dateField()));
+            if (countField != null && d != null) {
+                Double c = Values.number(row.get(countField));
+                if (c != null) counts.put(d, c);
+            }
             if (v != null && divisor != null) {
                 Double n = Values.number(row.get(divisor));
                 v = n == null || n <= 0 ? null : v / n; // p. ej. lluvia total / número de estaciones
@@ -95,8 +107,19 @@ public class SodaConnector implements SourceConnector {
     }
 
     /** Descarta el día o el mes en curso cuando el indicador lo pide (llegan incompletos). */
-    private List<Point> applyFlags(List<Point> pts, IndicatorSpec spec) {
+    private List<Point> applyFlags(List<Point> pts, IndicatorSpec spec, Map<LocalDate, Double> counts) {
         List<Point> out = new ArrayList<>(pts);
+        if ("true".equals(spec.params().get("dropOutlierCounts")) && counts.size() >= MIN_DAYS_FOR_OUTLIER_RULE) {
+            // La fuente a veces vuelca un atraso de varios días bajo una sola fecha (o reporta casi nada):
+            // un día con un conteo muy distinto a la mediana no representa a ese día.
+            List<Double> sorted = new ArrayList<>(counts.values());
+            sorted.sort(Comparator.naturalOrder());
+            double median = sorted.get(sorted.size() / 2);
+            out.removeIf(p -> {
+                Double c = counts.get(p.date());
+                return c != null && (c > median * OUTLIER_HIGH || c < median * OUTLIER_LOW);
+            });
+        }
         if ("true".equals(spec.params().get("dropCurrentDay"))) {
             LocalDate today = LocalDate.now(clock);
             out.removeIf(p -> p.date().equals(today));

@@ -14,7 +14,11 @@ import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.json.JsonMapper;
 import top.eridu.opencolombia.source.SourceException;
 
-/** Sismos del catálogo USGS dentro del rectángulo de Colombia, M >= 2,5, últimos 30 días. */
+/**
+ * Sismos del catálogo USGS, M >= 2,5, últimos 30 días. El rectángulo geográfico de la consulta también cubre
+ * partes de Ecuador, Perú, Venezuela, Brasil y Panamá, así que solo se conservan los eventos que USGS ubica
+ * en Colombia (su campo {@code place} termina en «, Colombia»). Los eventos en el mar sin país se omiten.
+ */
 @Component
 public class UsgsClient implements QuakeSource {
     private static final String BASE = "https://earthquake.usgs.gov/fdsnws/event/1/query"
@@ -52,6 +56,7 @@ public class UsgsClient implements QuakeSource {
                     JsonNode p = f.get("properties");
                     JsonNode c = f.get("geometry").get("coordinates");
                     if (p.get("mag").isNull()) continue;
+                    if (!p.get("place").asString().toLowerCase().contains("colombia")) continue;
                     out.add(new Quake(Instant.ofEpochMilli(p.get("time").asLong()), p.get("mag").asDouble(),
                             p.get("place").asString(), c.get(1).asDouble(), c.get(0).asDouble(), c.get(2).asDouble()));
                 } catch (RuntimeException ignored) {

@@ -39,6 +39,7 @@ class SeriesStoreTest {
         Files.writeString(dir.resolve("other.json"), Files.readString(dir.resolve("good.json")));
         assertThat(store.all()).extracting(Series::id).containsExactly("good");
         assertThat(store.get("live")).isEmpty();
+        assertThat(store.isReserved("live")).isTrue(); // archivo propio de otro componente: no se audita ni se loguea
         assertThat(store.get("partial")).isEmpty();
         assertThat(store.get("other")).isEmpty();
     }
