@@ -9,6 +9,7 @@ export function DataTable({ caption, headers, rows }: Props) {
   return (
     <details className="datatable">
       <summary>Ver datos</summary>
+      <div className="table-scroll" tabIndex={0} role="region" aria-label={`Tabla: ${caption}`}>
       <table>
         <caption>{caption}</caption>
         <thead>
@@ -28,6 +29,7 @@ export function DataTable({ caption, headers, rows }: Props) {
           ))}
         </tbody>
       </table>
+      </div>
     </details>
   )
 }

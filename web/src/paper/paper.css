@@ -149,13 +149,16 @@ a { color: inherit; }
 .hbars li { display: grid; grid-template-columns: minmax(90px, 160px) 1fr minmax(90px, auto); gap: 8px; align-items: center; margin: 5px 0; font-size: 0.85rem; }
 .hbar-track { background: rgba(0, 0, 0, 0.1); height: 14px; border-radius: 2px; }
 .hbar-fill { display: block; height: 100%; background: var(--cat-1); border-radius: 2px; }
-.yoy svg { width: 100%; height: auto; }
+.yoy > svg { width: 100%; height: auto; }
 .datatable { margin-top: 8px; font-size: 0.85rem; }
 .datatable summary { cursor: pointer; font-weight: 700; }
 .datatable table { border-collapse: collapse; margin-top: 6px; width: 100%; }
 .datatable th, .datatable td { text-align: left; padding: 3px 8px; border-bottom: 1px solid rgba(0, 0, 0, 0.15); }
 .datatable caption { text-align: left; font-style: italic; padding-bottom: 4px; }
 @media (max-width: 480px) {
+  .rates { grid-template-columns: 1fr; gap: 0; }
+  .rates dt { margin-top: 8px; }
+  .rates dd { overflow-wrap: anywhere; }
   .pie { grid-template-columns: 1fr; }
   .hbars li { grid-template-columns: 1fr; gap: 2px; }
 }
@@ -200,7 +203,7 @@ a { color: inherit; }
 
 /* v3: apiladas y pequeños múltiplos */
 .stacked { margin: 0; }
-.stacked svg { width: 100%; height: auto; max-height: 190px; }
+.stacked > svg { width: 100%; height: auto; max-height: 190px; }
 .multiples { display: grid; gap: 12px; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); margin-top: 12px; }
 .multiple { margin: 0; padding: 6px 8px; background: #fffaf0; border: 1px solid rgba(43, 33, 24, 0.25); }
 .multiple figcaption { font-size: 0.8rem; font-weight: 800; }
@@ -222,6 +225,8 @@ a { color: inherit; }
   outline: 1px solid rgba(43, 33, 24, 0.5); outline-offset: -1px;
 }
 .heat-legend { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; font-size: 0.8rem; margin: 6px 0 0; }
-.hist svg, .scatter svg { width: 100%; height: auto; max-height: 160px; }
+.hist > svg, .scatter > svg { width: 100%; height: auto; max-height: 160px; }
 .quake { fill: var(--cat-2); fill-opacity: 0.75; stroke: var(--ink); stroke-width: 1; }
-.hist svg, .scatter svg { max-width: 460px; }
+.hist > svg, .scatter > svg { max-width: 460px; }
+.table-scroll { overflow-x: auto; max-width: 100%; }
+.table-scroll:focus-visible { outline: 3px solid var(--blue); }

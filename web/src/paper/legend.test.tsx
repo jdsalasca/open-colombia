@@ -1,4 +1,6 @@
 import { render, screen } from '@testing-library/react'
+import { readFileSync } from 'node:fs'
+import { join } from 'node:path'
 import { describe, expect, it } from 'vitest'
 import { ChartDefs, patternFill } from './ChartDefs'
 import { HBarChart } from './HBarChart'
@@ -74,5 +76,25 @@ describe('charts do not rely on color alone', () => {
     const { container } = render(<YoYBars points={pts} higherIsBetter={true} />)
     expect(container.querySelector('rect.bar-good')).toHaveAttribute('fill', 'url(#pat-good)')
     expect(container.querySelector('rect.bar-bad')).toHaveAttribute('fill', 'url(#pat-bad)')
+  })
+})
+
+describe('legend swatches are never resized by chart rules', () => {
+  it('no stylesheet rule sizes every svg inside a figure that also holds a legend', () => {
+    // regresión: `.stacked svg { width: 100% }` agrandaba las muestras de la leyenda y desbordaba en móvil
+    const css = readFileSync(join(process.cwd(), 'src/paper/paper.css'), 'utf-8')
+    for (const sel of ['.stacked svg', '.pie svg', '.hist svg', '.scatter svg', '.yoy svg']) {
+      // selector descendiente («.stacked svg»), no hijo directo («.stacked > svg»), solo o en lista
+      const rule = new RegExp(String.raw`(^|[\s,])` + sel.replace('.', String.raw`\.`) + String.raw`\s*[,{]`, 'm')
+      expect(rule.test(css), `regla demasiado amplia: ${sel}`).toBe(false)
+    }
+  })
+})
+
+describe('narrow screens', () => {
+  it('the rates and glossary grid collapses to one column on phones so the page cannot scroll sideways', () => {
+    const css = readFileSync(join(process.cwd(), 'src/paper/paper.css'), 'utf-8')
+    const phone = css.slice(css.lastIndexOf('@media (max-width: 480px)'))
+    expect(phone).toMatch(/\.rates\s*\{[^}]*grid-template-columns:\s*1fr/)
   })
 })

@@ -29,10 +29,12 @@ export function RangeSelector({ ranges, value, onChange, label = 'Rango de tiemp
 
 /** Rangos válidos por periodicidad (espejo de Range.availableFor en el backend). */
 export function rangesFor(periodicity: string): string[] {
+  if (periodicity === 'diaria') return ['7d', '30d', '90d', '1a', 'todo']
   return periodicity === 'mensual' ? ['3m', '6m', '1a', '2a', 'todo'] : ['5a', '10a', 'todo']
 }
 
-/** Mensuales abren en 1 año; anuales en 10 años (una historia de 60 años aplasta la tendencia reciente). */
+/** Diarias abren en 90 días; mensuales en 1 año; anuales en 10 años (60 años de historia aplastan lo reciente). */
 export function defaultRange(periodicity: string): string {
+  if (periodicity === 'diaria') return '90d'
   return periodicity === 'mensual' ? '1a' : '10a'
 }
