@@ -7,7 +7,13 @@ import java.util.Optional;
 
 public record Series(String id, String theme, String name, String unit, String source,
                      String sourceUrl, String periodicity, List<Point> points, Instant fetchedAt,
-                     Freshness freshness) {
+                     Freshness freshness, String fingerprint) {
+
+    /** Con frescura pero sin huella (series recién leídas de la API). */
+    public Series(String id, String theme, String name, String unit, String source, String sourceUrl,
+                  String periodicity, List<Point> points, Instant fetchedAt, Freshness freshness) {
+        this(id, theme, name, unit, source, sourceUrl, periodicity, points, fetchedAt, freshness, null);
+    }
 
     /** Forma sin frescura (la que persiste la caché y usan los conectores). */
     public Series(String id, String theme, String name, String unit, String source, String sourceUrl,
@@ -20,10 +26,16 @@ public record Series(String id, String theme, String name, String unit, String s
     }
 
     public Series withPoints(List<Point> newPoints) {
-        return new Series(id, theme, name, unit, source, sourceUrl, periodicity, newPoints, fetchedAt, freshness);
+        return new Series(id, theme, name, unit, source, sourceUrl, periodicity, newPoints, fetchedAt, freshness,
+                fingerprint);
     }
 
     public Series withFreshness(Freshness f) {
-        return new Series(id, theme, name, unit, source, sourceUrl, periodicity, points, fetchedAt, f);
+        return new Series(id, theme, name, unit, source, sourceUrl, periodicity, points, fetchedAt, f, fingerprint);
+    }
+
+    /** Huella de la definición del indicador que produjo esta serie (ver IndicatorSpec#fingerprint). */
+    public Series withFingerprint(String fp) {
+        return new Series(id, theme, name, unit, source, sourceUrl, periodicity, points, fetchedAt, freshness, fp);
     }
 }

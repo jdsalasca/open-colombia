@@ -4,7 +4,7 @@ import type { Quake } from '../types'
 
 /** Magnitud contra tiempo; el radio crece con la magnitud y el mayor evento va rotulado. */
 export function QuakeScatter({ quakes }: { quakes: Quake[] }) {
-  if (quakes.length === 0) return <p className="card-empty">sin sismos M ≥ 2,5 en el periodo</p>
+  if (quakes.length === 0) return <p className="card-empty">sin sismos en el periodo</p>
   const width = 520
   const height = 170
   const padL = 34
@@ -43,7 +43,7 @@ export function QuakeScatter({ quakes }: { quakes: Quake[] }) {
         </text>
       </svg>
       <DataTable
-        caption="Sismos M ≥ 2,5 (USGS)"
+        caption="Sismos del catálogo USGS"
         headers={['Fecha', 'Magnitud', 'Lugar', 'Profundidad (km)']}
         rows={quakes.map((q) => [bogotaDate(q.time), fmt(q.mag), q.place, fmt(q.depthKm)])}
       />

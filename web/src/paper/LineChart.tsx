@@ -39,7 +39,11 @@ export function LineChart({ points, unit, height = 170, trend, xLabel }: Props) 
   const d = sorted.map((p, i) => `${i === 0 ? 'M' : 'L'}${x(p.date).toFixed(1)},${y(p.value).toFixed(1)}`).join(' ')
 
   const shortSeries = tSpan <= 24 * MONTH_MS
-  const label = xLabel ?? ((date: string) => (shortSeries ? periodLabel(date, 'mensual') : date.slice(0, 4)))
+  // datos casi diarios (mediana de separación <= 2 días): el eje muestra el día; si no, mes o año
+  const gaps = sorted.slice(1).map((p, i) => (Date.parse(p.date) - Date.parse(sorted[i].date)) / 86400000).sort((a, b) => a - b)
+  const dailyLike = gaps.length > 0 && gaps[Math.floor(gaps.length / 2)] <= 2 && tSpan <= 400 * 86400000
+  const label = xLabel ?? ((date: string) =>
+    dailyLike ? periodLabel(date, 'diaria') : shortSeries ? periodLabel(date, 'mensual') : date.slice(0, 4))
   const iMin = vals.indexOf(min)
   const iMax = vals.indexOf(max)
   const tri = (cx: number, cy: number, up: boolean) =>

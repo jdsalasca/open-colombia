@@ -129,7 +129,7 @@ public class RefreshService {
                 Series s = c.fetch(effective);
                 if (s.points().isEmpty()) return new SourceResult(spec.id(), false, "La fuente no devolvió datos.");
                 if (effective != spec) s = merge(cached, s, today.minusDays(spec.rollingWindowDays()));
-                store.put(s);
+                store.put(s.withFingerprint(spec.fingerprint()));
                 return new SourceResult(spec.id(), true, null);
             } catch (SourceException | RuntimeException e) {
                 last = e;

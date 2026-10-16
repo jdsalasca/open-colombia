@@ -58,6 +58,27 @@ public record IndicatorSpec(String id, Theme theme, String name, String unit, St
         };
     }
 
+    /**
+     * Huella estable de lo que determina el CONTENIDO de la serie (fuente, consulta, reglas de limpieza y
+     * método), no de su presentación. Si cambia, la caché guardada se produjo con otra definición y el refresco
+     * incremental no debe fusionarla con datos nuevos.
+     */
+    public String fingerprint() {
+        StringBuilder sb = new StringBuilder();
+        sb.append(id).append('|').append(kind).append('|').append(ref).append('|').append(valueField).append('|')
+                .append(dateField).append('|').append(unit).append('|').append(periodicity).append('|').append(method);
+        new java.util.TreeMap<>(params).forEach((k, v) -> sb.append('|').append(k).append('=').append(v));
+        try {
+            byte[] h = java.security.MessageDigest.getInstance("SHA-256")
+                    .digest(sb.toString().getBytes(java.nio.charset.StandardCharsets.UTF_8));
+            StringBuilder hex = new StringBuilder();
+            for (int i = 0; i < 8; i++) hex.append(String.format("%02x", h[i]));
+            return hex.toString();
+        } catch (java.security.NoSuchAlgorithmException e) {
+            throw new IllegalStateException(e); // SHA-256 existe en toda JVM
+        }
+    }
+
     /** Copia de este indicador con un parámetro cambiado o añadido. */
     public IndicatorSpec withParam(String key, String value) {
         Map<String, String> p = new java.util.LinkedHashMap<>(params);
@@ -80,6 +101,13 @@ public record IndicatorSpec(String id, Theme theme, String name, String unit, St
     public java.util.Optional<IndicatorSpec> incremental(Series cached, java.time.LocalDate today) {
         int window = rollingWindowDays();
         if (window == 0 || cached == null) return java.util.Optional.empty();
+        // solo se fusiona con una caché hecha por ESTA definición y consultada en la última semana: si cambió una
+        // regla, o hay que recoger correcciones/atrasos de la fuente, se vuelve a pedir toda la ventana
+        if (!fingerprint().equals(cached.fingerprint()) || cached.fetchedAt() == null
+                || java.time.temporal.ChronoUnit.DAYS.between(
+                        java.time.LocalDate.ofInstant(cached.fetchedAt(), java.time.ZoneOffset.UTC), today) > 7) {
+            return java.util.Optional.empty();
+        }
         return cached.latest().map(l -> {
             long age = java.time.temporal.ChronoUnit.DAYS.between(l.date(), today);
             long wanted = age + 10;

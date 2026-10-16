@@ -75,7 +75,7 @@ function Dollar({ live, now }: { live: LiveSnapshot | null; now: Date }) {
 function LatestQuake({ live, now }: { live: LiveSnapshot | null; now: Date }) {
   if (!live) {
     return (
-      <Card label="Último sismo (M ≥ 2,5)" to="/metodologia">
+      <Card label="Último sismo (catálogo USGS)" to="/metodologia">
         <p className="card-empty">sin dato</p>
       </Card>
     )
@@ -86,7 +86,7 @@ function LatestQuake({ live, now }: { live: LiveSnapshot | null; now: Date }) {
   const failed = Boolean(live.errors?.usgs)
   const fresh = !failed && live.fetchedAt !== null && minutesSince(live.fetchedAt, now) <= LIVE_WINDOW_MIN
   return (
-    <Card label="Último sismo (M ≥ 2,5)" to="/metodologia">
+    <Card label="Último sismo (catálogo USGS)" to="/metodologia">
       {q ? (
         <>
           <p className="card-value">
@@ -94,11 +94,11 @@ function LatestQuake({ live, now }: { live: LiveSnapshot | null; now: Date }) {
           </p>
           <p className="card-delta">{q.place} · profundidad {fmt(q.depthKm)} km</p>
           <p className="card-delta">
-            {bogotaDate(q.time)} {bogotaTime(q.time)} · {week} {week === 1 ? 'sismo' : 'sismos'} M ≥ 2,5 en 7 días
+            {bogotaDate(q.time)} {bogotaTime(q.time)} · {week} {week === 1 ? 'sismo' : 'sismos'} en 7 días
           </p>
         </>
       ) : (
-        <p className="card-empty">sin sismos M ≥ 2,5 en 30 días</p>
+        <p className="card-empty">sin sismos en el catálogo USGS en 30 días</p>
       )}
       <p className="chip">
         {failed ? (

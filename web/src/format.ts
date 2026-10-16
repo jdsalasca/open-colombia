@@ -24,12 +24,12 @@ export function delta(s: Series): number | null {
   return last.value - prev.value
 }
 
+const MESES = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic']
+
 export function periodLabel(date: string, periodicity: string): string {
-  const [y, m] = date.split('-')
-  if (periodicity === 'mensual') {
-    const meses = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic']
-    return `${meses[Number(m) - 1] ?? m} ${y}`
-  }
+  const [y, m, d] = date.slice(0, 10).split('-')
+  if (periodicity === 'diaria') return `${Number(d)} ${MESES[Number(m) - 1] ?? m} ${y}`
+  if (periodicity === 'mensual') return `${MESES[Number(m) - 1] ?? m} ${y}`
   return y
 }
 

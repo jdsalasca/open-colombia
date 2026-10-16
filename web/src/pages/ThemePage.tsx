@@ -46,7 +46,9 @@ function SeriesBlock({ series }: { series: Series }) {
         <p className="card-empty" role="status">Cargando…</p>
       ) : (
         <>
-          <LineChart points={res.series.points} unit={series.unit} trend={ols(res.series.points)} />
+          {/* una recta «por año» extrapolada de 7-120 días confunde estacionalidad con tendencia: solo mensual/anual */}
+          <LineChart points={res.series.points} unit={series.unit}
+                     trend={series.periodicity === 'diaria' ? undefined : ols(res.series.points)} />
           {series.periodicity === 'anual' && (
             <YoYBars points={res.series.points} higherIsBetter={res.higherIsBetter} unit={series.unit} />
           )}
@@ -114,7 +116,7 @@ function Climate({ series, live }: { series: Series[]; live: LiveSnapshot | null
         </PaperSheet>
       ))}
       <PaperSheet as="section" className="chart-sheet">
-        <h3 style={{ marginTop: 0 }}>Sismos en Colombia (M ≥ 2,5, últimos 30 días)</h3>
+        <h3 style={{ marginTop: 0 }}>Sismos registrados en Colombia (catálogo USGS, últimos 30 días)</h3>
         {live === null ? (
           <p className="card-empty">sin datos de sismos por ahora</p>
         ) : (
@@ -123,7 +125,11 @@ function Climate({ series, live }: { series: Series[]; live: LiveSnapshot | null
             <QuakeScatter quakes={quakes} />
           </>
         )}
-        <p className="chip">Fuente: USGS (catálogo sísmico). «En vivo» se actualiza cada 15 minutos.</p>
+        <p className="chip">
+          Fuente: USGS (catálogo sísmico global), que en esta región solo registra de forma regular los sismos de
+          magnitud 4 o más; el Servicio Geológico Colombiano (SGC) registra muchos más, de menor magnitud. Se
+          actualiza cada 15 minutos.
+        </p>
       </PaperSheet>
     </>
   )

@@ -15,7 +15,9 @@ import tools.jackson.databind.json.JsonMapper;
 import top.eridu.opencolombia.source.SourceException;
 
 /**
- * Sismos del catálogo USGS, M >= 2,5, últimos 30 días. El rectángulo geográfico de la consulta también cubre
+ * Sismos del catálogo USGS, últimos 30 días. Se pide {@code minmagnitude=2.5}, pero verificado el 2026-10-14 el
+ * catálogo no devuelve nada bajo M 4,0 en esta región (ni con minmagnitude=0): la cobertura es la limitante, y
+ * el Servicio Geológico Colombiano registra muchos más sismos, de menor magnitud. El rectángulo geográfico de la consulta también cubre
  * partes de Ecuador, Perú, Venezuela, Brasil y Panamá, así que solo se conservan los eventos que USGS ubica
  * en Colombia (su campo {@code place} termina en «, Colombia»). Los eventos en el mar sin país se omiten.
  */
